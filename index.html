@@ -42,6 +42,8 @@ button.ghost{background:transparent}
 button.small{min-height:36px;padding:6px 10px;font-size:13px}
 button:disabled{opacity:.45}
 .big{font-size:17px;padding:16px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.grid4 .big{padding:10px 4px;font-size:14px}.grid4 .big .ico{font-size:24px}
+.domnote{font-size:13px;color:var(--muted);margin-top:8px}
 .big .ico{font-size:26px;display:block;margin-bottom:2px}
 input[type=text],input[type=search],select{width:100%;background:#0e1530;border:1px solid var(--line);color:var(--text);border-radius:12px;padding:12px;font:inherit;font-size:16px}
 label.lbl{font-size:13px;color:var(--muted);display:block;margin:8px 0 4px}
@@ -126,6 +128,16 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px}
 <div class="note"><b>Notă:</b> Proteodyne este un instrument experimental de sunet și relaxare. Nu are efect terapeutic dovedit și nu înlocuiește tratamentul sau sfatul medicului. Ascultă la volum moderat.</div>
 
 <div id="view-gen">
+<section class="card" id="sec-dom">
+  <h2>Pentru cine generezi</h2>
+  <div class="grid4">
+    <button class="big sel" data-dom="om"><span class="ico">🧍</span>Om</button>
+    <button class="big" data-dom="plante"><span class="ico">🌱</span>Plante</button>
+    <button class="big" data-dom="insecte"><span class="ico">🐝</span>Insecte</button>
+    <button class="big" data-dom="animale"><span class="ico">🐄</span>Animale</button>
+  </div>
+  <div class="domnote" id="dom-note"></div>
+</section>
 <!-- PAS 1 -->
 <section class="card" id="sec-sex">
   <h2><span class="step">1</span> Pentru cine este sesiunea</h2>
@@ -170,7 +182,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px}
 
 <!-- STIVE PREDEFINITE -->
 <section class="card" id="sec-presets">
-  <h2>Stive predefinite</h2>
+  <h2 id="presets-h">Stive predefinite</h2>
   <div class="grid3" id="sex-row2" style="margin-bottom:8px"><button class="small" data-sex2="F">♀ Femeie</button><button class="small" data-sex2="M">♂ Bărbat</button><button class="small" data-sex2="U">⚥ Universal</button></div>
   <div class="grp" id="grp-row"></div>
   <div class="grid2" id="preset-row"></div>

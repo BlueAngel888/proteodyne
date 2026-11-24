@@ -340,7 +340,7 @@ const PRESETS = [
 const MOOD = {calm:{bpm:60,timbre:'cald',drone:true,n:'Calm'},mediu:{bpm:84,timbre:'flaut',drone:true,n:'Mediu'},alert:{bpm:108,timbre:'clopot',drone:false,n:'Alert'}};
 
 /* ================== STARE ================== */
-const S = {sex:null, age:'adult', cat:null, part:null, stack:null, wav:null, notes:[], url:null};
+const S = {dom:'om', sex:null, age:'adult', cat:null, part:null, stack:null, wav:null, notes:[], url:null};
 const $ = id => document.getElementById(id);
 const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),2200)}
@@ -354,6 +354,16 @@ function setSex(v,scroll){
   $('sec-cat').classList.remove('hidden');
   renderPresets(); if(S.cat){renderParts(); if(S.part&&S.part[3]&&S.sex&&S.part[3]!==S.sex){S.part=null;$('sec-act').classList.add('hidden')}}
 }
+function setDom(d){
+  if(d===S.dom) return; const H=['sec-sex','sec-cat','sec-part','sec-act'];
+  if(S.dom==='om') S.omHidden=H.map(id=>$(id).classList.contains('hidden'));
+  S.dom=d; document.querySelectorAll('[data-dom]').forEach(x=>x.classList.toggle('sel',x.dataset.dom===d));
+  H.forEach((id,i)=>$(id).classList.toggle('hidden',d!=='om'||(S.omHidden?S.omHidden[i]:id!=='sec-sex')));
+  $('sex-row2').classList.toggle('hidden',d!=='om');
+  $('presets-h').textContent=d==='om'?'Stive predefinite':'Stive pentru '+DOMS[d].n.toLowerCase();
+  $('dom-note').textContent=DOMS[d].note||''; curGrp=0; renderGroups(); renderPresets();
+}
+document.querySelectorAll('[data-dom]').forEach(b=>b.onclick=()=>setDom(b.dataset.dom));
 document.querySelectorAll('[data-sex]').forEach(b=>b.onclick=()=>setSex(b.dataset.sex,true));
 document.querySelectorAll('[data-sex2]').forEach(b=>b.onclick=()=>setSex(b.dataset.sex2,false));
 document.querySelectorAll('[data-age]').forEach(b=>b.onclick=()=>{
@@ -421,12 +431,14 @@ function renderTargets(){
   $('stack-targets').innerHTML='';
   S.stack.genes.forEach((g,i)=>{
     const d=document.createElement('div'); d.className='target';
-    d.innerHTML='<div><b>'+g+'</b> '+esc(T[g][0])+'<br><small style="color:var(--muted)">'+esc(D[g]||'')+' UniProt '+T[g][1]+' • '+seqFor(g).length+' aa</small></div>';
+    d.innerHTML='<div><b>'+g+'</b> '+esc(T[g][0])+'<br><small style="color:var(--muted)">'+esc(D[g]||'')+(T[g][1]?' UniProt '+T[g][1]:'')+' • '+seqFor(g).length+' aa</small></div>';
     const rm=document.createElement('button'); rm.className='small ghost rm'; rm.textContent='✕';
     rm.onclick=()=>{if(S.stack.genes.length>1){S.stack.genes.splice(i,1);renderTargets()}else toast('Stiva trebuie să aibă cel puțin o țintă')};
     d.appendChild(rm); $('stack-targets').appendChild(d);
   });
 }
+function uni(g){return T[g][1]?' <small>UniProt '+T[g][1]+'</small>':' <small>fără ID UniProt verificat</small>'}
+function isKid(p){return (p.dom||'om')==='om'&&p.grp===7}
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 
 /* ================== CĂUTARE ================== */
@@ -439,7 +451,7 @@ $('search').addEventListener('input',e=>{
     if(norm(p[0]).includes(q)||p[1].some(k=>q.includes(k)||k.includes(q))) hits.push({t:p[0],sub:p[3]+' • '+ACTIONS[p[4]].n,go:()=>pick(p[2],p[3],p[4],p[0])});
   });
   PRESETS.forEach(p=>{
-if(p.x&&S.sex&&p.x!==S.sex) return;
+if(p.dom!=='om') return; if(p.x&&S.sex&&p.x!==S.sex) return;
 if(norm(p.n+' '+(p.k||'')).includes(q)||(p.k||'').split(' ').some(k=>k.length>3&&q.includes(k))) hits.push({t:p.n,sub:'Stivă predefinită • '+p.g.join(' · '),go:()=>{setStack(presetStack(p));applyMood(p.m)}});
 });
 Object.keys(PARTS).forEach(c=>partsFor(c).forEach(p=>{
@@ -463,17 +475,17 @@ function pick(cat,partName,act,label){
 /* ================== PRESETURI ================== */
 function presetStack(p){
   const genes=p.g.slice(), tags=['Stivă predefinită','Ritm '+MOOD[p.m].n];
-  const add=(S.sex&&!p.x&&p.grp!==7&&SEX_ADD[S.sex][p.grp])||[];
+  const add=(S.sex&&!p.x&&p.dom==='om'&&p.grp!==7&&SEX_ADD[S.sex][p.grp])||[];
   add.forEach(g=>{if(!genes.includes(g)){genes.push(g); tags.push('+'+g+' ('+(S.sex==='F'?'Femeie':'Bărbat')+')')}});
   if(!S.sex&&S.sexSet) tags.push('Universal');
   return {name:p.n,color:p.c,genes,tags,mood:p.m};
 }
 function renderPresets(){
   const row=$('preset-row'); row.innerHTML='';
-  PRESETS.filter(p=>(!p.x||(S.sex?p.x===S.sex:!S.sexSet))&&(!curGrp||p.grp===curGrp)).forEach(p=>{
+  PRESETS.filter(p=>p.dom===S.dom&&(p.dom!=='om'||!p.x||(S.sex?p.x===S.sex:!S.sexSet))&&(!curGrp||p.grp===curGrp)).forEach(p=>{
     const b=document.createElement('button'); b.className='preset'; b.style.setProperty('--c',p.c);
-    const ex=(S.sex&&!p.x&&p.grp!==7&&SEX_ADD[S.sex][p.grp])||[]; b.innerHTML='<span style="color:'+p.c+';font-weight:700">'+esc(p.n)+'</span><small>'+p.g.join(' · ')+(ex.length?' <b style="color:var(--acc)">+ '+ex.join(' · ')+'</b>':'')+'</small>';
-    b.onclick=()=>{setStack(presetStack(p)); applyMood(p.m,p.grp===7)};
+    const ex=(S.sex&&!p.x&&p.dom==='om'&&p.grp!==7&&SEX_ADD[S.sex][p.grp])||[]; b.innerHTML='<span style="color:'+p.c+';font-weight:700">'+esc(p.n)+'</span><small>'+p.g.join(' · ')+(ex.length?' <b style="color:var(--acc)">+ '+ex.join(' · ')+'</b>':'')+'</small>';
+    b.onclick=()=>{setStack(presetStack(p)); applyMood(p.m,isKid(p))};
     const w=document.createElement('div'); w.className='pw';
     const q=document.createElement('button'); q.className='small qbtn'; q.textContent='?'; q.setAttribute('aria-label','Explicație '+p.n);
     q.onclick=e=>{e.stopPropagation(); openSheet(p)};
@@ -513,11 +525,142 @@ const K_EXTRA={
  'Articulații & Țesut Conjunctiv':'tendoane ligamente tendinita entorsa','Digestie & Gut-Brain':'digestie apetit satietate','Echilibru Imun & Scut':'autoimun alergii imunitate',
  'Vitalitate & Bună Dispoziție':'dispozitie optimism motivatie veselie','Echilibru Feminin':'ciclu menstruatie hormoni feminin','Vitalitate Masculină':'testosteron vitalitate masculin'
 };
-PRESETS.forEach(p=>{p.grp=p.grp||GRP_OF[p.n]||3; if(K_EXTRA[p.n]) p.k=((p.k||'')+' '+K_EXTRA[p.n]).trim()});
+/* ================== DOMENII: OM / PLANTE / INSECTE / ANIMALE ================== */
+const DOMS={
+ om:{n:'Om',ico:'🧍',pre:'Personal ',note:''},
+ plante:{n:'Plante',ico:'🌱',pre:'Plante ',g:['Toate','Apărare & Boli','Legume & Cartof','Pomi & Viță','Cereale','Creștere & Recoltă','Secetă, Căldură & Frig'],
+   note:'Stive pentru culturi, construite din proteine reale ale plantelor (apărare, fotosinteză, stres) și ale unor patogeni cunoscuți. Experiment de ascultare, neverificat, nu înlocuiește protecția culturilor.'},
+ insecte:{n:'Insecte',ico:'🐝',pre:'Insecte ',g:['Toate','Albine','Polenizatori','Dăunători'],
+   note:'Stive pentru albine și alte insecte, din proteine reale ale albinei (Apis mellifera) și ale unor paraziți. Experiment de ascultare, neverificat, nu înlocuiește tratamentele apicole.'},
+ animale:{n:'Animale',ico:'🐄',pre:'Animale ',g:['Toate','Vaci & Lapte','Porci','Păsări','Câini & Pisici','Stres & Transport'],
+   note:'Stive pentru animale de fermă și de companie. Unde nu există o proteină specifică speciei, se folosește proteina umană echivalentă ca reper. Experiment, neverificat, nu înlocuiește medicul veterinar.'}
+};
+function domGroups(d){d=d||S.dom; return d==='om'?GROUPS:DOMS[d].g}
+function domOfText(t){
+  const n=' '+norm(t).replace(/[^a-z0-9 ]/g,' ')+' ';
+  if(/ (albin|stup|polen|bondar|insect|daunator|varroa|nosema|puiet|matca)/.test(n)) return 'insecte';
+  if(/ (vac|vaci|bovin|vitel|porc|purcel|gain|gaini|pasar|pasari|caine|caini|pisic|animal|oaie|oi |capr|mastit|uger|ferma|cal |cai )/.test(n)) return 'animale';
+  if(/ (plant|cultur|rosi|ardei|castrav|cartof|grau|porumb|cerea|vita de vie|strugur|pom|livad|gradin|rasad|semint|recolt|mucegai|mana |frunz|sera|legum)/.test(n)) return 'plante';
+  return S.dom||'om';
+}
+
+Object.assign(T,{
+ // apărare umană suplimentară
+ DEFB4A:['Beta-defensina 2 (hBD-2)','O15263'], PGLYRP1:['Proteina de recunoaștere a peptidoglicanului 1','O75594'],
+ // bacterii rezistente (proteinele lor de rezistență)
+ TEM1:['Beta-lactamaza TEM-1 (E. coli)','P62593'], KPC2:['Carbapenemaza KPC-2 (Klebsiella)','Q9F663'], NDM1:['Metalo-beta-lactamaza NDM-1','C7C422'],
+ MECA:['PBP2a (stafilococ auriu MRSA)',''], ACRB:['Pompa de eflux AcrB (E. coli)','P31224'], LASR:['LasR (Pseudomonas, quorum sensing)','P25084'], CSGA:['Curlina CsgA (biofilm E. coli)','P28307'],
+ // plante
+ NPR1:['NPR1 (receptor acid salicilic)','P93002'], PR1:['Proteina de patogeneză PR1','P33154'], FLS2:['FLS2 (receptor de flagelină)','Q9FL28'],
+ SYS:['Prosistemină (roșie)','P27058'], COI1:['COI1 (receptor jasmonat)','O04197'], MYC2:['MYC2 (factor de răspuns la jasmonat)','Q39204'],
+ PAL1:['Fenilalanin amoniac-liaza 1','P35510'], LOX2:['Lipoxigenaza 2 (cloroplast)','P38418'], PDF12:['Defensina vegetală PDF1.2',''], CHIB:['Chitinaza bazică (PR-3)','P19171'],
+ PTO:['Pto (rezistență la roșie)','Q40234'], RBCL:['RuBisCO, subunitatea mare','O03042'], RCA:['RuBisCO activaza','P10896'], PHYB:['Fitocrom B','P14713'],
+ PIP21:['Aquaporina PIP2;1','P43286'], NRT11:['Transportor de nitrat NRT1.1','Q05085'], PIN1:['PIN1 (transport auxină)','Q9C6B8'],
+ DREB2A:['DREB2A (răspuns la secetă)','O82132'], CBF1:['CBF1 (răspuns la frig)','P93835'], HSP101:['HSP101 (toleranță la căldură)','P42730'], SOS1:['SOS1 (toleranță la sare)','Q9LKW9'],
+ BCPG1:['Poligalacturonaza BcPG1 (mucegai cenușiu)',''], AVR3A:['Avr3a (mana cartofului)',''],
+ // insecte
+ AMVG:['Vitelogenină (albină)','Q868N5'], MRJP1:['Proteina majoră a lăptișorului 1','O18330'], AMDEF1:['Defensina-1 a albinei (royalisină)','P17722'],
+ APID:['Apidecină (albină)',''], ABAEC:['Abecină (albină)',''], HYMEN:['Himenoptecină (albină)',''], AMPPO:['Profenoloxidaza (albină)',''],
+ NOSSWP:['Proteină de perete a sporului Nosema',''], ORCO:['Orco (co-receptor olfactiv al insectelor)','Q9VNB5'],
+ // animale
+ BTLTF:['Lactoferină bovină','P24627'], BTGH:['Somatotropină bovină','P01246'], BTPRL:['Prolactină bovină','P01239'], BTLAP:['LAP (beta-defensină din uger, bovină)',''],
+ SSPR39:['PR-39 (catelicidină de porc)',''], GGLYZ:['Lizozim (găină)','P00698'], GGOVT:['Ovotransferină (găină)','P02789'], GGAVBD:['Beta-defensine aviare (AvBD)','']
+});
+Object.assign(D,{
+ DEFB4A:'Peptid antimicrobian produs de piele și mucoase când apare o infecție; găurește membrana bacteriilor.',
+ PGLYRP1:'Recunoaște peptidoglicanul din peretele bacteriilor și ajută la distrugerea lor; se găsește în neutrofile.',
+ TEM1:'Enzimă bacteriană care rupe penicilinele și cefalosporinele vechi; una dintre cele mai răspândite cauze de rezistență.',
+ KPC2:'Enzimă a bacteriei Klebsiella care distruge carbapenemele, antibioticele de rezervă din spitale.',
+ NDM1:'Enzimă bacteriană care folosește zinc ca să distrugă aproape toate beta-lactaminele, inclusiv carbapenemele.',
+ MECA:'Proteina care leagă penicilina la stafilococul MRSA; nu se lasă blocată de meticilină, așa că bacteria își construiește peretele mai departe.',
+ ACRB:'Pompă din membrana bacteriei care scoate afară antibiotice de multe feluri; contribuie la rezistența multiplă.',
+ LASR:'Receptorul prin care Pseudomonas „numără” câte bacterii sunt în jur și pornește virulența și biofilmul.',
+ CSGA:'Proteina care formează fibrele de curlină din biofilmul E. coli, stratul care protejează bacteriile.',
+ NPR1:'Regulator central al rezistenței sistemice a plantei; percepe acidul salicilic și pornește genele de apărare.',
+ PR1:'Marker clasic al apărării activate de acidul salicilic; are activitate împotriva unor ciuperci și oomicete.',
+ FLS2:'Receptor de pe membrana celulei vegetale care recunoaște flagelina bacteriilor și declanșează imunitatea de bază.',
+ SYS:'Precursorul sisteminei, peptid din roșie care transmite alarma când e atacată de insecte și pornește inhibitorii de proteaze.',
+ COI1:'Receptorul jasmonatului, hormonul plantei pentru apărarea împotriva insectelor și a ciupercilor care omoară țesutul.',
+ MYC2:'Factor de transcripție care pornește genele de apărare când crește jasmonatul.',
+ PAL1:'Prima enzimă a căii fenilpropanoide: lignină pentru pereți tari, flavonoide și acid salicilic.',
+ LOX2:'Enzimă din cloroplast care inițiază sinteza jasmonatului după rănire sau atac.',
+ PDF12:'Defensină vegetală cu efect antifungic, pornită de jasmonat și etilenă; marker al apărării împotriva mucegaiurilor.',
+ CHIB:'Chitinază care rupe chitina din peretele ciupercilor; face parte din proteinele de patogeneză (PR-3).',
+ PTO:'Kinază din roșie care recunoaște efectorii bacteriei Pseudomonas syringae și declanșează rezistența.',
+ RBCL:'Subunitatea mare a RuBisCO, enzima care fixează CO₂ în fotosinteză; cea mai abundentă proteină de pe Pământ.',
+ RCA:'Activaza care repornește RuBisCO; e sensibilă la căldură și limitează fotosinteza în zilele fierbinți.',
+ PHYB:'Fotoreceptor pentru lumina roșie; reglează germinația, alungirea tulpinii și înflorirea.',
+ PIP21:'Canal de apă din membrana celulelor rădăcinii și frunzei; controlează cât de repede circulă apa.',
+ NRT11:'Transportă nitratul în rădăcină și funcționează și ca senzor de azot pentru creștere.',
+ PIN1:'Transportă auxina, hormonul de creștere, și dă direcția de creștere a tulpinii și rădăcinii.',
+ DREB2A:'Factor de transcripție pornit de secetă și căldură; activează genele de protecție la deshidratare.',
+ CBF1:'Factor de transcripție pornit de frig; activează genele de călire care protejează planta de îngheț.',
+ HSP101:'Proteină de șoc termic care desface proteinele agregate de căldură; esențială pentru toleranța la temperaturi mari.',
+ SOS1:'Pompă care scoate sodiul din celule; ajută planta să tolereze solul sărat.',
+ BCPG1:'Enzimă cu care mucegaiul cenușiu (Botrytis cinerea) descompune peretele celular al fructelor și frunzelor.',
+ AVR3A:'Efector al oomicetei Phytophthora infestans (mana cartofului și roșiei) care încearcă să blocheze apărarea plantei.',
+ AMVG:'Proteina de rezervă a albinei; e folosită la producerea lăptișorului, susține imunitatea și viața lungă a albinelor de iarnă.',
+ MRJP1:'Cea mai abundentă proteină din lăptișorul de matcă; hrănește larvele și matca.',
+ AMDEF1:'Peptid antibacterian al albinei, prezent în lăptișor și în hemolimfă.',
+ APID:'Peptid antibacterian al albinei, activ mai ales împotriva bacteriilor gram-negative.',
+ ABAEC:'Peptid antimicrobian bogat în prolină din imunitatea albinei.',
+ HYMEN:'Peptid antimicrobian mare al albinei, pornit la infecții bacteriene.',
+ AMPPO:'Enzimă a imunității insectelor care produce melanină și izolează agenții patogeni și rănile.',
+ NOSSWP:'Proteină din învelișul sporilor de Nosema ceranae, parazit intestinal care slăbește albinele.',
+ ORCO:'Co-receptor olfactiv comun insectelor; prin el miros florile, plantele gazdă și feromonii.',
+ BTLTF:'Lactoferina din laptele vacii; leagă fierul și are efect antimicrobian, mai ales în colostru.',
+ BTGH:'Hormonul de creștere al vacii; susține creșterea și producția de lapte.',
+ BTPRL:'Prolactina vacii; pornește și menține producția de lapte.',
+ BTLAP:'Beta-defensină a vacii produsă în glanda mamară; crește când apare mastita.',
+ SSPR39:'Peptid antimicrobian al porcului, bogat în prolină și arginină; are și rol în vindecarea rănilor.',
+ GGLYZ:'Lizozimul din albușul de ou; rupe peretele bacteriilor gram-pozitive.',
+ GGOVT:'Ovotransferina din albuș; leagă fierul și oprește înmulțirea bacteriilor.',
+ GGAVBD:'Familie de peptide antimicrobiene ale păsărilor, prezente în intestin, piele și ou.'
+});
+
+PRESETS.push(
+ // OM – cele 5 direcții
+ {n:'Scut Antibacterian Natural',c:'#0369a1',g:['CAMP','DEFB4A','LTF','LYZ','PGLYRP1'],m:'mediu',grp:4,dom:'om',k:'bacterii infectie antibiotic rezistent stafilococ',syn:'Peptidele și proteinele cu care corpul omoară singur bacteriile: catelicidina, beta-defensina 2, lactoferina, lizozimul și PGLYRP1. Tema: apărarea antibacteriană proprie.'},
+ {n:'Bacterii Rezistente Slăbite',c:'#f87171',g:['MECA','TEM1','KPC2','NDM1','ACRB'],m:'alert',grp:4,dom:'om',k:'bacterii rezistente antibiotic mrsa klebsiella superbacterii',syn:'Proteinele cu care bacteriile rezistă la antibiotice: PBP2a (MRSA), trei enzime care distrug antibioticele și pompa care le scoate afară. Tema: „sunetul” rezistenței bacteriene, ca experiment.'},
+ {n:'Anti-Biofilm',c:'#fca5a5',g:['LASR','CSGA','CAMP','LTF'],m:'mediu',grp:4,dom:'om',k:'biofilm infectie cronica pseudomonas',syn:'Semnalul de grup al bacteriei (LasR) și fibrele biofilmului (curlină), puse lângă două proteine umane care împiedică formarea biofilmului. Tema: infecțiile care se ascund în biofilm.'},
+ {n:'Refacere după Operație',c:'#16a34a',g:['VEGFA','COL1A1','COL3A1','TGFB1','FGF2','IL10'],m:'calm',grp:3,dom:'om',k:'operatie chirurgie cicatrice rana interventie postoperator',syn:'Vase noi, colagen I și III pentru cicatrizare, semnalele de creștere TGF-β1 și FGF2, plus frâna inflamației. Tema: vindecarea după intervenție, ca sprijin pe lângă îngrijirea medicală.'},
+ {n:'Sprijin în Tratament',c:'#22d3ee',g:['NRF2','SOD2','IL10','ALB','LTF'],m:'calm',grp:4,dom:'om',k:'tratament medicamente spital chimioterapie convalescenta',syn:'Protecția antioxidantă (NRF2, SOD2), echilibrul inflamației, albumina care transportă medicamentele și lactoferina. Tema: susținere în timpul unui tratament, nu înlocuirea lui.'},
+ {n:'Scut Copil Bolnav',c:'#facc15',g:['LTF','LYZ','DEFB1','IL10','LALBA'],m:'calm',grp:7,dom:'om',k:'copil bolnav imunitate raceala febra gradinita',syn:'Proteinele protectoare din laptele matern (lactoferină, lizozim, alfa-lactalbumină), defensina mucoaselor și frâna inflamației. Tema: imunitate blândă pentru copii, pe lângă tratamentul dat de medic.'},
+ {n:'Seară Fără Stres',c:'#6d28d9',g:['MTNR1A','GABRA1','NR3C1','OXT','NPY'],m:'calm',grp:1,dom:'om',k:'somn stres seara relaxare insomnie',syn:'Receptorul melatoninei, frâna GABA, receptorul cortizolului care închide bucla de stres, oxitocina și neuropeptidul Y. Tema: trecerea de la stresul zilei la somn.'},
+ {n:'Pauză Anti-Stres Rapidă',c:'#c4b5fd',g:['OXT','HTR1A','GABRA1','NPY'],m:'calm',grp:1,dom:'om',k:'stres pauza birou anxietate rapid',syn:'Oxitocina, receptorul de serotonină 1A, frâna GABA și neuropeptidul Y. Tema: câteva minute de calm în mijlocul zilei.'},
+ // PLANTE
+ {n:'Imunitate Plantă Generală',c:'#4ade80',g:['FLS2','NPR1','PR1','COI1','MYC2'],m:'mediu',grp:1,dom:'plante',k:'imunitate planta boli pesticide protectie',syn:'Cele două brațe ale imunității plantei: recunoașterea bacteriilor (FLS2) și calea acidului salicilic (NPR1, PR1), plus calea jasmonatului (COI1, MYC2). Tema: apărare generală fără chimicale.'},
+ {n:'Scut Roșii Sănătoase',c:'#fdba74',g:['PTO','SYS','NPR1','PR1','PAL1'],m:'mediu',grp:2,dom:'plante',k:'rosii tomate solar boli bacterioza',syn:'Rezistența roșiei la bacterii (Pto), alarma sisteminei, calea acidului salicilic și PAL pentru pereți tari. Tema: roșii sănătoase.'},
+ {n:'Cartof Fără Mană',c:'#ca8a04',g:['AVR3A','NPR1','PR1','PAL1','LOX2'],m:'mediu',grp:2,dom:'plante',k:'cartof mana phytophthora rosii pete frunze',syn:'Efectorul manei (Avr3a) pus lângă proteinele de apărare ale plantei. Tema: cartof și roșie protejate de mană.'},
+ {n:'Fără Mucegai Cenușiu',c:'#9ca3af',g:['BCPG1','CHIB','PDF12','COI1','PAL1'],m:'mediu',grp:3,dom:'plante',k:'mucegai botrytis struguri capsuni putregai fructe',syn:'Enzima cu care mucegaiul atacă fructul, față în față cu chitinaza și defensina plantei, calea jasmonatului și PAL. Tema: struguri, căpșuni și fructe fără putregai.'},
+ {n:'Scut Anti-Insecte Plantă',c:'#a3e635',g:['SYS','COI1','MYC2','LOX2'],m:'mediu',grp:1,dom:'plante',k:'insecte daunatori afide omizi gandaci frunze roase',syn:'Lanțul de alarmă al plantei la atacul insectelor: sistemina, lipoxigenaza care face jasmonat, receptorul lui și factorul care pornește apărarea. Tema: plante care se apără singure.'},
+ {n:'Cereale Puternice',c:'#fbbf24',g:['RBCL','NRT11','NPR1','FLS2','DREB2A'],m:'mediu',grp:4,dom:'plante',k:'grau porumb orz cereale camp',syn:'Fotosinteză (RuBisCO), absorbția azotului, imunitate și toleranță la secetă. Tema: cereale robuste.'},
+ {n:'Recoltă Bogată',c:'#b45309',g:['RBCL','RCA','PHYB','NRT11','PIN1'],m:'alert',grp:5,dom:'plante',k:'recolta productie randament fructe crestere foamete',syn:'Fixarea CO₂ și activaza ei, receptorul de lumină, azotul și hormonul de creștere. Tema: creștere și producție.'},
+ {n:'Răsaduri Viguroase',c:'#15803d',g:['PHYB','PIN1','NRT11','PIP21'],m:'mediu',grp:5,dom:'plante',k:'rasad rasaduri seminte germinare sera',syn:'Lumină, direcția de creștere, azot și apă. Tema: răsaduri puternice.'},
+ {n:'Secetă & Căldură',c:'#86efac',g:['DREB2A','HSP101','PIP21','SOS1','RCA'],m:'calm',grp:6,dom:'plante',k:'seceta canicula caldura sare irigatie',syn:'Răspunsul la secetă, proteina de șoc termic, canalele de apă, toleranța la sare și activaza sensibilă la căldură. Tema: plante care rezistă verii.'},
+ {n:'Rezistență la Îngheț',c:'#60a5fa',g:['CBF1','DREB2A','PIP21','HSP101'],m:'calm',grp:6,dom:'plante',k:'frig inghet bruma iarna pomi',syn:'Factorul de călire la frig, răspunsul la deshidratare și canalele de apă. Tema: protecție la brumă și îngheț.'},
+ {n:'Livadă & Vie Sănătoasă',c:'#7e22ce',g:['NPR1','CHIB','PDF12','PAL1','CBF1'],m:'mediu',grp:3,dom:'plante',k:'pomi livada mar vie vita strugure',syn:'Calea acidului salicilic, două proteine antifungice, PAL și călirea la frig. Tema: pomi și viță sănătoși.'},
+ // INSECTE
+ {n:'Albine Puternice Iarna',c:'#34d399',g:['AMVG','MRJP1','AMDEF1','AMPPO'],m:'calm',grp:1,dom:'insecte',k:'albine iarna stup familie putere longevitate',syn:'Vitelogenina care ține albinele de iarnă în viață, proteina lăptișorului, defensina și enzima de apărare melanizantă. Tema: familii puternice peste iarnă.'},
+ {n:'Scut Albine Anti-Nosema',c:'#047857',g:['NOSSWP','AMDEF1','APID','ABAEC','AMVG'],m:'mediu',grp:1,dom:'insecte',k:'nosema diaree albine boala parazit',syn:'Proteina sporului de Nosema pusă lângă trei peptide antimicrobiene ale albinei și vitelogenină. Tema: albine protejate de Nosema.'},
+ {n:'Puiet Sănătos',c:'#6ee7b7',g:['MRJP1','AMDEF1','HYMEN','APID'],m:'calm',grp:1,dom:'insecte',k:'puiet larve loca americana matca',syn:'Hrana larvelor (MRJP1) și peptidele care le protejează de bacterii. Tema: puiet sănătos.'},
+ {n:'Polenizatori Activi',c:'#0d9488',g:['ORCO','AMVG','AMPPO'],m:'alert',grp:2,dom:'insecte',k:'polenizare bondari flori polenizatori',syn:'Mirosul care duce insecta la flori, rezerva de energie și apărarea. Tema: polenizatori activi.'},
+ {n:'Alungare Dăunători',c:'#57534e',g:['ORCO','SYS','COI1','LOX2'],m:'alert',grp:3,dom:'insecte',k:'daunatori afide gandaci omizi alungare',syn:'Receptorul de miros al insectelor alături de semnalele de apărare ale plantei. Tema: culturi mai puțin atractive pentru dăunători.'},
+ // ANIMALE
+ {n:'Uger Sănătos Vaci',c:'#e879f9',g:['BTLTF','BTLAP','LYZ','IL10'],m:'calm',grp:1,dom:'animale',k:'vaci mastita uger lapte fara antibiotice',syn:'Lactoferina și defensina ugerului, lizozimul și frâna inflamației. Tema: uger sănătos fără antibiotice.'},
+ {n:'Lapte & Vitalitate',c:'#c026d3',g:['BTPRL','BTGH','LALBA','BTLTF'],m:'mediu',grp:1,dom:'animale',k:'lapte productie vaca vitalitate',syn:'Prolactina și somatotropina vacii, alfa-lactalbumina și lactoferina. Tema: producție de lapte.'},
+ {n:'Purcei Fără Antibiotice',c:'#fda4af',g:['SSPR39','LTF','MUC2','TJP1','IL10'],m:'mediu',grp:2,dom:'animale',k:'porci purcei diaree intarcare intestin',syn:'Peptidul antimicrobian al porcului, lactoferina, stratul de mucus și joncțiunile intestinale, plus frâna inflamației. Tema: intestin sănătos la înțărcare.'},
+ {n:'Păsări Sănătoase',c:'#5eead4',g:['GGLYZ','GGOVT','GGAVBD','TJP1'],m:'mediu',grp:3,dom:'animale',k:'gaini pui pasari ferma oua',syn:'Lizozimul și ovotransferina din ou, defensinele păsărilor și bariera intestinală. Tema: păsări sănătoase fără antibiotice.'},
+ {n:'Câine & Pisică Mobili',c:'#a3a3a3',g:['COL2A1','ACAN','IL1RN','TGFB1'],m:'calm',grp:4,dom:'animale',k:'caine pisica articulatii batran mers',syn:'Cartilaj (colagen II, agrecan) și două semnale care temperează inflamația articulară, cu proteinele umane ca reper. Tema: mobilitate la animalele de companie.'},
+ {n:'Animale Calme',c:'#0e7490',g:['OXT','NR3C1','GABRA1','NPY'],m:'calm',grp:5,dom:'animale',k:'stres transport frica artificii calm animal',syn:'Oxitocina, receptorul cortizolului, frâna GABA și neuropeptidul Y. Tema: animale liniștite la transport, artificii sau vizite la veterinar.'},
+ {n:'Imunitate Animale Tinere',c:'#2563eb',g:['BTLTF','LYZ','DEFB1','IL10'],m:'calm',grp:1,dom:'animale',k:'vitei catei pisoi tineri imunitate colostru',syn:'Lactoferina din colostru, lizozimul, defensina și frâna inflamației. Tema: imunitate pentru animale tinere.'}
+);
+
+PRESETS.forEach(p=>{p.dom=p.dom||'om'; p.grp=p.grp||GRP_OF[p.n]||3; if(K_EXTRA[p.n]) p.k=((p.k||'')+' '+K_EXTRA[p.n]).trim()});
 let curGrp=0;
 function renderGroups(){
   const r=$('grp-row'); r.innerHTML='';
-  GROUPS.forEach((g,i)=>{const b=document.createElement('button'); b.textContent=g; if(i===curGrp)b.classList.add('sel'); b.onclick=()=>{curGrp=i;renderGroups();renderPresets()}; r.appendChild(b)});
+  domGroups().forEach((g,i)=>{const b=document.createElement('button'); b.textContent=g; if(i===curGrp)b.classList.add('sel'); b.onclick=()=>{curGrp=i;renderGroups();renderPresets()}; r.appendChild(b)});
 }
 
 /* ================== ASISTENT STIVE (local, offline) ================== */
@@ -537,14 +680,16 @@ function makeStack(text){
   const score={}, why={}, themes=[], syns=[];
   const bump=(g,v,r)=>{if(!T[g])return; score[g]=(score[g]||0)+v; (why[g]=why[g]||new Set()).add(r)};
   const kidQ=ws.some(w=>/^(copil|copii|kids|fiul|fiica|baiat|fetit|nepot)/.test(w));
+  const dq=domOfText(text);
   PRESETS.forEach(p=>{
+    if(p.dom!==dq) return;
     if(p.x&&S.sex&&p.x!==S.sex) return;
-    if(kidQ&&p.grp!==7) return;
-    if(!kidQ&&p.grp===7) return;
+    if(dq==='om'&&kidQ&&p.grp!==7) return;
+    if(dq==='om'&&!kidQ&&p.grp===7) return;
     const kw=words(p.n+' '+(p.k||'')); const sc=scoreKw(ws,kw); if(!sc) return;
     themes.push([sc,p]); p.g.forEach(g=>bump(g,sc,p.n));
   });
-  PROBLEMS.forEach(p=>{
+  if(dq==='om') PROBLEMS.forEach(p=>{
     if(p[5]&&S.sex&&p[5]!==S.sex) return;
     const sc=scoreKw(ws,p[1].concat(words(p[0]))); if(!sc) return;
     const part=PARTS[p[2]].find(x=>x[0]===p[3]);
@@ -552,6 +697,7 @@ function makeStack(text){
     (p[4]==='hormon'?SEX_T[S.sex||'U']:ACTIONS[p[4]].t).slice(0,3).forEach(g=>bump(g,sc,p[0]));
   });
   Object.keys(T).forEach(g=>{ if(ws.some(w=>norm(g)===w)) bump(g,5,'cerut de tine'); });
+  if(dq!=='om'&&!Object.keys(score).length) return null;
   const ranked=Object.keys(score).sort((a,b)=>score[b]-score[a]);
   if(!ranked.length) return null;
   const genes=ranked.slice(0,Math.max(3,Math.min(7,ranked.length)));
@@ -559,7 +705,7 @@ function makeStack(text){
   const top=themes.slice(0,2).map(t=>t[1]);
   const reasons=[...new Set(genes.flatMap(g=>[...why[g]]))];
   const label=top.length?top.map(p=>p.n.split(' ')[0]).filter((v,i,a)=>a.indexOf(v)===i).join(' & '):reasons[0].split(' ')[0];
-  const name=shortName((kidQ?'Copil ':'Personal ')+label);
+  const name=shortName(dq!=='om'?DOMS[dq].pre+(top.length?top[0].n.split(' ').slice(0,2).join(' '):label):(kidQ?'Copil ':'Personal ')+label);
   const color=PALETTE[loadMine().length%PALETTE.length];
   let syn='Stivă construită pentru: „'+text.trim()+'”. Combină ';
   syn+= top.length? 'temele '+top.map(p=>'„'+p.n+'”').join(' și ')+' ('+top.map(p=>p.syn.replace(/\s*Tema:.*$/,'').replace(/\.$/,'')).join('; ')+')' : 'țintele legate de '+reasons.slice(0,3).join(', ');
@@ -591,7 +737,7 @@ function chatReply(text){
   const q=norm(text).trim(); const up=text.toUpperCase();
   const genesIn=Object.keys(T).filter(g=>new RegExp('\\b'+g+'\\b').test(up));
   if(/^(ce (este|e|face)|explica|ce inseamna)/.test(q)&&genesIn.length){
-    genesIn.forEach(g=>addMsg('bot','<div class="gt"><b>'+g+'</b> · '+esc(T[g][0])+' <small>UniProt '+T[g][1]+'</small><div>'+esc(D[g])+'</div></div>'));
+    genesIn.forEach(g=>addMsg('bot','<div class="gt"><b>'+g+'</b> · '+esc(T[g][0])+uni(g)+'<div>'+esc(D[g])+'</div></div>'));
     const inP=PRESETS.filter(p=>p.g.some(x=>genesIn.includes(x))).map(p=>p.n);
     if(inP.length) addMsg('bot','Apare în stivele: '+esc(inP.slice(0,6).join(', '))+'.');
     return;
@@ -630,9 +776,9 @@ function initChat(){
   greet(); renderQuota();
 }
 function greet(){
-  const d=addMsg('bot','Salut! Spune-mi ce nevoie ai și îți fac o stivă. '+(S.sex?'':'Dacă alegi Femeie, Bărbat sau Universal în Generator, potrivesc stivele după asta.'));
+  const d=addMsg('bot','Salut! Spune-mi ce nevoie ai și îți fac o stivă, pentru om, plante, albine sau animale. '+(S.sex?'':'Dacă alegi Femeie, Bărbat sau Universal în Generator, potrivesc stivele după asta.'));
   const sg=document.createElement('div'); sg.className='sugg';
-  ['Nu dorm bine și sunt stresat','Dureri de spate și genunchi','Imunitate pentru iarnă','Energie și concentrare','Digestie grea și balonare','Copilul meu nu se concentrează la teme'].forEach(t=>{const b=document.createElement('button'); b.textContent=t; b.onclick=()=>{$('chat-q').value=t; sendChat()}; sg.appendChild(b)});
+  ['Nu dorm bine și sunt stresat','Dureri de spate și genunchi','Imunitate pentru iarnă','Energie și concentrare','Digestie grea și balonare','Copilul meu nu se concentrează la teme','Roșii fără boli și mucegai','Albine puternice pentru iarnă','Vaci cu mastită, fără antibiotice'].forEach(t=>{const b=document.createElement('button'); b.textContent=t; b.onclick=()=>{$('chat-q').value=t; sendChat()}; sg.appendChild(b)});
   d.appendChild(sg);
 }
 function renderMineGuide(){
@@ -648,15 +794,17 @@ function renderMineGuide(){
 function renderGuide(){
   const el=$('guide-list'); el.innerHTML='';
   let lastG=-1;
-  PRESETS.slice().sort((a,b)=>a.grp-b.grp).forEach(p=>{
-    if(p.grp!==lastG){lastG=p.grp; const h=document.createElement('div'); h.className='gh'; h.textContent=GROUPS[p.grp]; el.appendChild(h)}
-    const c=document.createElement('div'); c.className='gcard'; c.style.setProperty('--c',p.c); c.dataset.s=p.n+' '+(p.k||'')+' '+p.syn+' '+p.g.map(g=>g+' '+T[g][0]+' '+(D[g]||'')).join(' ')+' '+GROUPS[p.grp];
+  const DO=Object.keys(DOMS);
+  PRESETS.slice().sort((a,b)=>(DO.indexOf(a.dom)-DO.indexOf(b.dom))||(a.grp-b.grp)).forEach(p=>{
+    const gk=p.dom+p.grp, gname=DOMS[p.dom].ico+' '+DOMS[p.dom].n+' · '+domGroups(p.dom)[p.grp];
+    if(gk!==lastG){lastG=gk; const h=document.createElement('div'); h.className='gh'; h.textContent=gname; el.appendChild(h)}
+    const c=document.createElement('div'); c.className='gcard'; c.style.setProperty('--c',p.c); c.dataset.s=p.n+' '+(p.k||'')+' '+p.syn+' '+p.g.map(g=>g+' '+T[g][0]+' '+(D[g]||'')).join(' ')+' '+gname+' '+DOMS[p.dom].n;
     c.innerHTML='<div class="gname" style="color:'+p.c+'">'+esc(p.n)+'</div>'+
       '<div class="chips" style="margin:4px 0 8px"><span class="chip">Ritm '+MOOD[p.m].n+' • '+MOOD[p.m].bpm+' BPM</span>'+(p.x?'<span class="chip">'+(p.x==='F'?'Femeie':'Bărbat')+'</span>':'')+'</div>'+
-      '<p class="gsyn"><b>Efect sinergic (tema stivei):</b> '+esc(p.syn)+'</p>'+(!p.x&&(SEX_ADD.F[p.grp]||SEX_ADD.M[p.grp])?'<p class="gsyn" style="color:var(--muted)">Adaptare după sex: '+[SEX_ADD.F[p.grp]?'la Femeie se adaugă '+SEX_ADD.F[p.grp].join(', '):'',SEX_ADD.M[p.grp]?'la Bărbat se adaugă '+SEX_ADD.M[p.grp].join(', '):''].filter(Boolean).join('; ')+'.</p>':'')+
-      p.g.map(g=>'<div class="gt"><b>'+g+'</b> · '+esc(T[g][0])+' <small>UniProt '+T[g][1]+'</small><div>'+esc(D[g]||'')+'</div></div>').join('');
+      '<p class="gsyn"><b>Efect sinergic (tema stivei):</b> '+esc(p.syn)+'</p>'+(!p.x&&p.dom==='om'&&p.grp!==7&&(SEX_ADD.F[p.grp]||SEX_ADD.M[p.grp])?'<p class="gsyn" style="color:var(--muted)">Adaptare după sex: '+[SEX_ADD.F[p.grp]?'la Femeie se adaugă '+SEX_ADD.F[p.grp].join(', '):'',SEX_ADD.M[p.grp]?'la Bărbat se adaugă '+SEX_ADD.M[p.grp].join(', '):''].filter(Boolean).join('; ')+'.</p>':'')+
+      p.g.map(g=>'<div class="gt"><b>'+g+'</b> · '+esc(T[g][0])+uni(g)+'<div>'+esc(D[g]||'')+'</div></div>').join('');
     const b=document.createElement('button'); b.className='small'; b.style.marginTop='8px'; b.textContent='Încarcă + preset potrivit';
-    b.onclick=()=>{showView('gen'); setStack(presetStack(p)); applyMood(p.m,p.grp===7)};
+    b.onclick=()=>{showView('gen'); if(S.dom!==p.dom) setDom(p.dom); setStack(presetStack(p)); applyMood(p.m,isKid(p))};
     c.appendChild(b); el.appendChild(c);
   });
   renderGloss('');
@@ -665,7 +813,7 @@ function renderGloss(q){
   q=norm(q); const el=$('gloss'); el.innerHTML='';
   Object.keys(T).sort().filter(g=>!q||norm(g+' '+T[g][0]+' '+(D[g]||'')).includes(q)).forEach(g=>{
     const d=document.createElement('div'); d.className='gt';
-    d.innerHTML='<b>'+g+'</b> · '+esc(T[g][0])+' <small>UniProt '+T[g][1]+'</small><div>'+esc(D[g]||'')+'</div>'; el.appendChild(d);
+    d.innerHTML='<b>'+g+'</b> · '+esc(T[g][0])+uni(g)+'<div>'+esc(D[g]||'')+'</div>'; el.appendChild(d);
   });
 }
 function showView(v){
@@ -883,7 +1031,7 @@ function presetDetail(p){
   const st=p.n?presetStack(p):p; st.mood=st.mood||p.m||guessMood(st.genes);
   st.syn=p.syn||st.syn||'Stivă creată de tine.'; if(!p.n&&!st.why) st.why=null;
   let h=stackHTML(st);
-  if(p.n&&!p.x&&(SEX_ADD.F[p.grp]||SEX_ADD.M[p.grp])&&p.grp!==7) h+='<p class="gsyn" style="color:var(--muted)">Adaptare după sex: '+[SEX_ADD.F[p.grp]?'la Femeie se adaugă '+SEX_ADD.F[p.grp].join(', '):'',SEX_ADD.M[p.grp]?'la Bărbat se adaugă '+SEX_ADD.M[p.grp].join(', '):''].filter(Boolean).join('; ')+'.</p>';
+  if(p.n&&!p.x&&(SEX_ADD.F[p.grp]||SEX_ADD.M[p.grp])&&p.dom==='om'&&p.grp!==7) h+='<p class="gsyn" style="color:var(--muted)">Adaptare după sex: '+[SEX_ADD.F[p.grp]?'la Femeie se adaugă '+SEX_ADD.F[p.grp].join(', '):'',SEX_ADD.M[p.grp]?'la Bărbat se adaugă '+SEX_ADD.M[p.grp].join(', '):''].filter(Boolean).join('; ')+'.</p>';
   return h;
 }
 function openSheet(p){
@@ -893,7 +1041,7 @@ function openSheet(p){
 function closeSheet(){$('sheet').hidden=true; document.documentElement.style.overflow=''}
 $('sheet-back').onclick=closeSheet;
 $('sheet').addEventListener('click',e=>{if(e.target.id==='sheet') closeSheet()});
-$('sheet-load').onclick=()=>{if(sheetP&&sheetP.n){setStack(presetStack(sheetP)); applyMood(sheetP.m,sheetP.grp===7)} closeSheet()};
+$('sheet-load').onclick=()=>{if(sheetP&&sheetP.n){setStack(presetStack(sheetP)); applyMood(sheetP.m,isKid(sheetP))} closeSheet()};
 function curStackDetail(){if(!S.stack) return; const p=PRESETS.find(x=>x.n===S.stack.name); openSheet(p||{...S.stack,genes:S.stack.genes.slice()})}
 $('stack-q').onclick=curStackDetail;
 /* bara de jos: redă fără să muți pagina */
