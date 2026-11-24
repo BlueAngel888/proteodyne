@@ -613,15 +613,21 @@ function chatReply(text){
   if(!st){addMsg('bot','Nu am găsit nimic potrivit în bibliotecă pentru asta. Încearcă să descrii simplu, de exemplu: „somn”, „stres”, „genunchi”, „imunitate”, „digestie”, „energie”, „libido”.'); return}
   showStack(st,'Iată stiva pentru nevoia ta'+(S.sex?(S.sex==='F'?' (Femeie)':' (Bărbat)'):(S.sexSet?' (Universal)':''))+'. O poți modifica scriind „adaugă …” sau „scoate …”.');
 }
+const CHAT_LIMIT=5;
+function chatQuota(){const d=new Date().toISOString().slice(0,10); let q; try{q=JSON.parse(localStorage.getItem('pd_chatq')||'null')}catch(e){} if(!q||q.d!==d) q={d,n:0}; return q}
+function renderQuota(){const q=chatQuota(), left=Math.max(0,CHAT_LIMIT-q.n), el=$('chat-quota'); if(el) el.textContent='Mesaje rămase azi: '+left+' din '+CHAT_LIMIT;
+  $('chat-send').disabled=left===0; $('chat-q').disabled=left===0; $('chat-q').placeholder=left?'Scrie nevoia ta…':'Limita de azi s-a atins. Revino mâine.'}
 function sendChat(){
-  const i=$('chat-q'), t=i.value.trim(); if(!t) return; i.value='';
-  addMsg('me',esc(t)); chatHist.push(t); chatReply(t); saveChat();
+  const i=$('chat-q'), t=i.value.trim(); if(!t) return;
+  const q=chatQuota(); if(q.n>=CHAT_LIMIT){addMsg('bot','Ai folosit cele '+CHAT_LIMIT+' mesaje de azi. Mâine poți scrie din nou. Între timp, stivele gata făcute și Generatorul merg fără limită.'); renderQuota(); return}
+  q.n++; try{localStorage.setItem('pd_chatq',JSON.stringify(q))}catch(e){}
+  i.value=''; addMsg('me',esc(t)); chatHist.push(t); chatReply(t); saveChat(); renderQuota();
 }
 function initChat(){
   $('chat-send').onclick=sendChat;
   $('chat-q').addEventListener('keydown',e=>{if(e.key==='Enter')sendChat()});
   $('chat-clear').onclick=()=>{chatHist=[];lastChatStack=null;saveChat();$('chatlog').innerHTML='';greet()};
-  greet();
+  greet(); renderQuota();
 }
 function greet(){
   const d=addMsg('bot','Salut! Spune-mi ce nevoie ai și îți fac o stivă. '+(S.sex?'':'Dacă alegi Femeie, Bărbat sau Universal în Generator, potrivesc stivele după asta.'));
