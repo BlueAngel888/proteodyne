@@ -422,6 +422,8 @@ function setStack(st){
   S.stack=st; $('sec-stack').classList.remove('hidden');
   $('stack-name').textContent=st.name; $('stack-name').style.color=st.color||'var(--text)';
   $('stack-chips').innerHTML=st.tags.map(t=>'<span class="chip">'+esc(t)+'</span>').join('');
+  { const pp=PRESETS.find(x=>x.n===st.name); const sy=st.syn||(pp&&pp.syn)||('Pune împreună '+st.genes.map(g=>T[g]?T[g][0]:g).join(', ')+'. Mai jos vezi ce face fiecare.');
+    $('stack-syn').innerHTML='<b>Ce face stiva:</b> '+esc(sy); }
   if(!st.mood) st.mood=guessMood(st.genes);
   $('btn-mood').textContent='Preset potrivit: '+MOOD[st.mood].n+' ('+MOOD[st.mood].bpm+' BPM)';
   renderTargets(); $('save-name').value=st.name;
@@ -489,7 +491,9 @@ function renderPresets(){
     const w=document.createElement('div'); w.className='pw';
     const q=document.createElement('button'); q.className='small qbtn'; q.textContent='?'; q.setAttribute('aria-label','Explicație '+p.n);
     q.onclick=e=>{e.stopPropagation(); openSheet(p)};
-    w.append(b,q); row.appendChild(w);
+    const ad=document.createElement('button'); ad.className='small abtn'; ad.textContent='+'; ad.setAttribute('aria-label','Adaugă în combinație '+p.n);
+    ad.onclick=e=>{e.stopPropagation(); const st=presetStack(p); st.syn=p.syn; addToMix(st)};
+    w.append(b,q,ad); row.appendChild(w);
   });
 }
 // „Încarcă + preset potrivit”: tempo mic seara/relaxare, tempo alert la focus/energie. Rămâne control manual.
@@ -1069,24 +1073,35 @@ $('guide-q').addEventListener('input',guideFilter);
 S.mix=[];
 function addToMix(st){
   if(!st) return; if(S.mix.some(m=>m.name===st.name&&m.genes.join()===st.genes.join())){toast('„'+st.name+'” e deja în combinație');return}
-  S.mix.push({name:st.name,color:st.color||'#22d3ee',genes:st.genes.slice(),mood:st.mood}); renderMix(); showBar();
+  const pp=PRESETS.find(x=>x.n===st.name); S.mix.push({name:st.name,color:st.color||'#22d3ee',genes:st.genes.slice(),mood:st.mood,syn:st.syn||(pp&&pp.syn)||''}); renderMix(); showBar();
   toast('Adăugat în combinație: '+st.name+' ('+S.mix.length+' stive)');
 }
 function mixGenes(){const out=[]; S.mix.forEach(m=>m.genes.forEach(g=>{if(!out.includes(g)) out.push(g)})); return out}
 function renderMix(){
-  const sec=$('sec-mix'), el=$('mix-list'); sec.classList.toggle('hidden',!S.mix.length); el.innerHTML='';
-  $('mix-count').textContent=S.mix.length+' stive • '+mixGenes().length+' ținte';
+  const el=$('mix-list'), sum=$('mix-sum'); el.innerHTML=''; sum.innerHTML='';
+  const has=S.mix.length>0; ['btn-mix-play','btn-mix-save','btn-mix-clear'].forEach(id=>$(id).disabled=!has);
+  $('mix-count').textContent=has?S.mix.length+' stive • '+mixGenes().length+' ținte':'goală';
+  if(!has){el.innerHTML='<div style="font-size:13px;color:var(--muted);padding:8px 0">Combinația e goală. Apasă + pe o stivă de mai sus.</div>';return}
+  const cnt={}; S.mix.forEach(m=>m.genes.forEach(g=>cnt[g]=(cnt[g]||0)+1));
   S.mix.forEach((m,i)=>{
     const d=document.createElement('div'); d.className='mixs'; d.style.setProperty('--c',m.color);
-    const hd=document.createElement('div'); hd.className='hd'; hd.innerHTML='<span style="color:'+m.color+'">'+esc(m.name)+'</span>';
+    const hd=document.createElement('div'); hd.className='hd'; hd.innerHTML='<span style="color:'+m.color+'">'+(i+1)+'. '+esc(m.name)+'</span>';
     const rm=document.createElement('button'); rm.className='small'; rm.textContent='Elimină stiva'; rm.onclick=()=>{S.mix.splice(i,1); renderMix(); showBar()};
     hd.appendChild(rm); d.appendChild(hd);
-    const ch=document.createElement('div'); ch.className='mchips';
-    m.genes.forEach((g,j)=>{const c=document.createElement('span'); c.className='mchip'; c.innerHTML='<b>'+g+'</b>';
-      const x=document.createElement('button'); x.textContent='✕'; x.setAttribute('aria-label','Scoate '+g);
-      x.onclick=()=>{m.genes.splice(j,1); if(!m.genes.length) S.mix.splice(i,1); renderMix(); showBar()}; c.appendChild(x); ch.appendChild(c)});
-    d.appendChild(ch); el.appendChild(d);
+    if(m.syn){const sy=document.createElement('div'); sy.className='msyn'; sy.innerHTML='<b>Ce face stiva:</b> '+esc(m.syn); d.appendChild(sy)}
+    m.genes.forEach((g,j)=>{const r=document.createElement('div'); r.className='mel';
+      r.innerHTML='<div><b>'+g+'</b> · '+esc(T[g]?T[g][0]:g)+(cnt[g]>1?'<span class="mshared">★ comun cu altă stivă</span>':'')+'<br><span style="color:var(--muted)">'+esc(D[g]||'')+'</span></div>';
+      const x=document.createElement('button'); x.className='small'; x.textContent='✕'; x.setAttribute('aria-label','Scoate '+g);
+      x.onclick=()=>{m.genes.splice(j,1); if(!m.genes.length) S.mix.splice(i,1); renderMix(); showBar()}; r.appendChild(x); d.appendChild(r)});
+    el.appendChild(d);
   });
+  const shared=Object.keys(cnt).filter(g=>cnt[g]>1);
+  const themes=S.mix.map(m=>{const t=(m.syn||'').match(/Tema:\s*([^.]*)/); return t?t[1].trim():m.name});
+  let h='<b>Efectul cumulat al combinației:</b> '+(S.mix.length>1?'pune împreună temele '+themes.map(t=>'„'+esc(t)+'”').join(' + ')+'. ':'tema „'+esc(themes[0])+'”. ');
+  h+='În audio intră '+mixGenes().length+' ținte, fiecare o singură dată, redate pe rând.';
+  if(shared.length) h+=' Țintele comune ('+shared.join(', ')+') leagă stivele între ele și sunt puntea dintre teme.';
+  h+=' <span style="color:var(--muted)">Temă de ascultare experimentală, nu tratament.</span>';
+  sum.innerHTML='<div class="mixsum">'+h+'</div>';
 }
 function playMix(){if(!S.mix.length) return; const g=mixGenes(); S.lastName='Combinație: '+S.mix.map(m=>m.name).join(' + '); generate(g); S.playing='mix'}
 $('btn-addmix').onclick=()=>addToMix(S.stack);
@@ -1103,7 +1118,7 @@ $('bar-add').onclick=()=>addToMix(S.stack);
 /* ================== START ================== */
 document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>showView(b.dataset.view));
 $('gloss-q').addEventListener('input',e=>renderGloss(e.target.value));
-renderGroups(); renderGuide(); renderMineGuide(); initChat(); renderPresets(); renderMine(); syncLabels(); fitCanvas(); requestAnimationFrame(draw);
+renderGroups(); renderGuide(); renderMineGuide(); renderMix(); initChat(); renderPresets(); renderMine(); syncLabels(); fitCanvas(); requestAnimationFrame(draw);
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 }

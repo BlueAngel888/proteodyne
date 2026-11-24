@@ -107,6 +107,13 @@ body.hasbar .toast{bottom:calc(env(safe-area-inset-bottom) + 78px)}
 .mixs .hd{display:flex;align-items:center;gap:8px;font-weight:700}
 .mixs .hd span{flex:1;min-width:0}
 .mchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.abtn{position:absolute;top:44px;right:6px;min-height:32px!important;width:32px;padding:0!important;border-radius:50%!important;font-weight:700;font-size:18px!important;color:#4ade80}
+.pw .preset{min-height:84px}
+.msyn{font-size:13px;margin:6px 0 2px;color:var(--txt,#e5e7eb)}
+.mel{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;padding:6px 0;border-top:1px dashed var(--line)}
+.mel div{flex:1;min-width:0}.mel b{color:var(--acc)}.mel button{min-height:28px!important;width:28px;padding:0!important;border-radius:50%!important;flex:none}
+.mshared{font-size:11px;color:#fbbf24;margin-left:4px}
+.mixsum{font-size:13.5px;margin-top:10px;padding:10px;border-radius:10px;background:#0e1530;border:1px solid var(--line)}
 .mchip{display:inline-flex;align-items:center;gap:4px;font-size:12px;padding:2px 4px 2px 9px;border-radius:999px;border:1px solid var(--line);background:var(--panel2)}
 .mchip button{min-height:24px;width:24px;padding:0;border:0;background:transparent;font-size:12px;color:var(--muted)}
 .crumb{font-size:13px;color:var(--muted);margin-bottom:8px}
@@ -193,6 +200,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px}
   <h2>Stiva curentă <button class="small qbtn" id="stack-q" style="position:static;margin-left:auto" aria-label="Explicație">?</button></h2>
   <div class="stackname" id="stack-name"></div>
   <div class="chips" id="stack-chips"></div>
+  <div class="msyn" id="stack-syn"></div>
   <div class="targets" id="stack-targets"></div>
   <div class="row" style="margin-top:10px">
     <button class="primary" style="flex:1" id="btn-gen">▶ Generează și redă</button>
@@ -204,10 +212,11 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px}
   </div>
 </section>
 
-<section class="card hidden" id="sec-mix">
+<section class="card" id="sec-mix">
   <h2>Combinație <span class="chip" id="mix-count" style="margin-left:auto"></span></h2>
-  <p style="font-size:13px;color:var(--muted);margin:0 0 6px">Stivele de aici se redau una după alta într-un singur audio. Poți scoate o stivă întreagă sau doar un element.</p>
+  <p style="font-size:13px;color:var(--muted);margin:0 0 6px">Apasă <b style="color:#4ade80">+</b> pe orice stivă ca s-o pui aici, una peste alta (de exemplu 2–3 organe sau stive din domenii diferite). Le generezi apoi într-un singur audio. Poți scoate o stivă întreagă sau doar un element.</p>
   <div id="mix-list" class="targets"></div>
+  <div id="mix-sum"></div>
   <div class="row" style="margin-top:10px"><button class="primary" style="flex:1" id="btn-mix-play">▶ Generează combinația</button></div>
   <div class="grid2" style="margin-top:8px"><button class="small" id="btn-mix-save">Salvează combinația</button><button class="small" id="btn-mix-clear">Golește</button></div>
 </section>
