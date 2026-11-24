@@ -101,6 +101,12 @@ audio{width:100%;margin-top:10px}
 .bar button{min-height:40px;font-size:14px}
 body.hasbar{padding-bottom:calc(env(safe-area-inset-bottom) + 84px)}
 body.hasbar .toast{bottom:calc(env(safe-area-inset-bottom) + 78px)}
+.mixs{background:#0e1530;border:1px solid var(--line);border-left:5px solid var(--c);border-radius:10px;padding:8px 10px}
+.mixs .hd{display:flex;align-items:center;gap:8px;font-weight:700}
+.mixs .hd span{flex:1;min-width:0}
+.mchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.mchip{display:inline-flex;align-items:center;gap:4px;font-size:12px;padding:2px 4px 2px 9px;border-radius:999px;border:1px solid var(--line);background:var(--panel2)}
+.mchip button{min-height:24px;width:24px;padding:0;border:0;background:transparent;font-size:12px;color:var(--muted)}
 .crumb{font-size:13px;color:var(--muted);margin-bottom:8px}
 .crumb b{color:var(--text)}
 footer{font-size:12px;color:var(--muted);text-align:center;margin-top:18px}
@@ -179,13 +185,20 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px}
   <div class="row" style="margin-top:10px">
     <button class="primary" style="flex:1" id="btn-gen">▶ Generează și redă</button>
   </div>
-  <button class="small" style="width:100%;margin-top:8px" id="btn-mood">Preset potrivit</button>
+  <div class="grid2" style="margin-top:8px"><button class="small" id="btn-mood">Preset potrivit</button><button class="small" id="btn-addmix">+ Adaugă în combinație</button></div>
   <div class="row" style="margin-top:8px">
     <input type="text" id="save-name" placeholder="Nume pentru salvare (ex. Refacere Spate)" style="flex:1">
     <button id="btn-save">Salvează</button>
   </div>
 </section>
 
+<section class="card hidden" id="sec-mix">
+  <h2>Combinație <span class="chip" id="mix-count" style="margin-left:auto"></span></h2>
+  <p style="font-size:13px;color:var(--muted);margin:0 0 6px">Stivele de aici se redau una după alta într-un singur audio. Poți scoate o stivă întreagă sau doar un element.</p>
+  <div id="mix-list" class="targets"></div>
+  <div class="row" style="margin-top:10px"><button class="primary" style="flex:1" id="btn-mix-play">▶ Generează combinația</button></div>
+  <div class="grid2" style="margin-top:8px"><button class="small" id="btn-mix-save">Salvează combinația</button><button class="small" id="btn-mix-clear">Golește</button></div>
+</section>
 <!-- PLAYER -->
 <section class="card" id="sec-player">
   <h2>Melodie și export</h2>
@@ -274,12 +287,13 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px}
 </div>
 <div class="toast" id="toast"></div>
 <div class="sheet" id="sheet" hidden><div class="sheet-in" id="sheet-in">
-  <div class="sheet-top"><button class="small" id="sheet-back">← Înapoi</button><button class="small primary" id="sheet-load" style="flex:1">Încarcă + preset potrivit</button></div>
+  <div class="sheet-top"><button class="small" id="sheet-back">← Înapoi</button><button class="small primary" id="sheet-load" style="flex:1">Încarcă + preset</button><button class="small" id="sheet-mix">+ Combinație</button></div>
   <div id="sheet-body"></div>
 </div></div>
 <div class="bar" id="bar" hidden><div class="bar-in">
   <span class="nm" id="bar-name"></span>
   <button class="small" id="bar-info" aria-label="Explicație">?</button>
+  <button class="small" id="bar-add" aria-label="Adaugă în combinație">+</button>
   <button class="small" id="bar-view">Vezi</button>
   <button class="small primary" id="bar-play">▶ Redă</button>
 </div></div>

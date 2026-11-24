@@ -764,11 +764,11 @@ function generate(genes,play=true){
 }
 function fmt(s){s=Math.round(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
 $('btn-mood').onclick=()=>S.stack&&applyMood(S.stack.mood);
-$('btn-gen').onclick=()=>{ if(!S.stack) return; generate(S.stack.genes) };
+$('btn-gen').onclick=()=>{ if(!S.stack) return; generate(S.stack.genes); S.playing=S.stack };
 $('btn-test').onclick=()=>{ const d=$('dur').value; $('dur').value='0'; generate(['OXT']); $('dur').value=d };
 $('btn-wav').onclick=()=>download(S.wav,fileBase()+'.wav');
 $('btn-mid').onclick=()=>download(midiBlob(S.notes,S.bpm),fileBase()+'.mid');
-function fileBase(){return 'proteodyne-'+norm((S.stack?S.stack.name:'test')).replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}
+function fileBase(){return 'proteodyne-'+norm((S.playing==='mix'?'combinatie':(S.stack?S.stack.name:'test'))).replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}
 function download(blob,name){
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click();
   setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},4000);
@@ -892,11 +892,12 @@ function curStackDetail(){if(!S.stack) return; const p=PRESETS.find(x=>x.n===S.s
 $('stack-q').onclick=curStackDetail;
 /* bara de jos: redă fără să muți pagina */
 function showBar(){
-  if(!S.stack) return; $('bar').hidden=false; document.body.classList.add('hasbar');
-  $('bar-name').textContent=S.stack.name; $('bar-name').style.color=S.stack.color||'var(--text)';
+  if(!S.stack&&!(S.mix&&S.mix.length)) return; $('bar').hidden=false; document.body.classList.add('hasbar');
+  if(S.mix&&S.mix.length){$('bar-name').textContent='Combinație ('+S.mix.length+'): '+S.mix.map(m=>m.name).join(' + '); $('bar-name').style.color='var(--acc)'}
+  else {$('bar-name').textContent=S.stack.name; $('bar-name').style.color=S.stack.color||'var(--text)'}
 }
-$('bar-play').onclick=()=>{if(!S.stack) return; if(S.playing===S.stack&&!audio.paused){audio.pause();return} generate(S.stack.genes); S.playing=S.stack};
-$('bar-view').onclick=()=>{showView('gen'); $('sec-stack').scrollIntoView({behavior:'smooth',block:'start'})};
+$('bar-play').onclick=()=>{if(!audio.paused){audio.pause();return} if(S.mix&&S.mix.length){playMix();return} if(!S.stack) return; generate(S.stack.genes); S.playing=S.stack};
+$('bar-view').onclick=()=>{showView('gen'); $((S.mix&&S.mix.length)?'sec-mix':'sec-stack').scrollIntoView({behavior:'smooth',block:'start'})};
 $('bar-info').onclick=curStackDetail;
 audio.addEventListener('play',()=>$('bar-play').textContent='⏸ Pauză');
 audio.addEventListener('pause',()=>$('bar-play').textContent='▶ Redă');
@@ -908,6 +909,42 @@ function guideFilter(){
   $('guide-empty').hidden=shown>0;
 }
 $('guide-q').addEventListener('input',guideFilter);
+
+
+/* ================== COMBINAȚIE DE STIVE ================== */
+S.mix=[];
+function addToMix(st){
+  if(!st) return; if(S.mix.some(m=>m.name===st.name&&m.genes.join()===st.genes.join())){toast('„'+st.name+'” e deja în combinație');return}
+  S.mix.push({name:st.name,color:st.color||'#22d3ee',genes:st.genes.slice(),mood:st.mood}); renderMix(); showBar();
+  toast('Adăugat în combinație: '+st.name+' ('+S.mix.length+' stive)');
+}
+function mixGenes(){const out=[]; S.mix.forEach(m=>m.genes.forEach(g=>{if(!out.includes(g)) out.push(g)})); return out}
+function renderMix(){
+  const sec=$('sec-mix'), el=$('mix-list'); sec.classList.toggle('hidden',!S.mix.length); el.innerHTML='';
+  $('mix-count').textContent=S.mix.length+' stive • '+mixGenes().length+' ținte';
+  S.mix.forEach((m,i)=>{
+    const d=document.createElement('div'); d.className='mixs'; d.style.setProperty('--c',m.color);
+    const hd=document.createElement('div'); hd.className='hd'; hd.innerHTML='<span style="color:'+m.color+'">'+esc(m.name)+'</span>';
+    const rm=document.createElement('button'); rm.className='small'; rm.textContent='Elimină stiva'; rm.onclick=()=>{S.mix.splice(i,1); renderMix(); showBar()};
+    hd.appendChild(rm); d.appendChild(hd);
+    const ch=document.createElement('div'); ch.className='mchips';
+    m.genes.forEach((g,j)=>{const c=document.createElement('span'); c.className='mchip'; c.innerHTML='<b>'+g+'</b>';
+      const x=document.createElement('button'); x.textContent='✕'; x.setAttribute('aria-label','Scoate '+g);
+      x.onclick=()=>{m.genes.splice(j,1); if(!m.genes.length) S.mix.splice(i,1); renderMix(); showBar()}; c.appendChild(x); ch.appendChild(c)});
+    d.appendChild(ch); el.appendChild(d);
+  });
+}
+function playMix(){if(!S.mix.length) return; const g=mixGenes(); S.lastName='Combinație: '+S.mix.map(m=>m.name).join(' + '); generate(g); S.playing='mix'}
+$('btn-addmix').onclick=()=>addToMix(S.stack);
+$('btn-mix-play').onclick=playMix;
+$('btn-mix-clear').onclick=()=>{S.mix=[]; renderMix(); showBar(); toast('Combinația a fost golită')};
+$('btn-mix-save').onclick=()=>{
+  if(!S.mix.length) return; const name=shortName('Mix '+S.mix.map(m=>m.name.split(' ')[0]).join(' + ').replace(/ \+ /g,' & ')).slice(0,40);
+  const genes=mixGenes(); const syn='Combinație din: '+S.mix.map(m=>m.name).join(', ')+'. Se redau una după alta într-un singur audio.';
+  const a=loadMine(); a.unshift({name,color:S.mix[0].color,genes,syn,date:new Date().toISOString()}); if(saveMine(a)){renderMine(); toast('Salvat: '+name)}
+};
+$('sheet-mix').onclick=()=>{if(sheetP){addToMix(sheetP.n?presetStack(sheetP):sheetP)} closeSheet()};
+$('bar-add').onclick=()=>addToMix(S.stack);
 
 /* ================== START ================== */
 document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>showView(b.dataset.view));
