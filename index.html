@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Proteodyne</title>
+<meta name="description" content="Generator experimental de sunete din secvențe de aminoacizi, pentru relaxare.">
+<meta name="theme-color" content="#0b1020">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Proteodyne">
+<style>
+:root{
+  --bg:#0b1020; --panel:#121a33; --panel2:#18223f; --line:#26335a; --text:#e7ecff; --muted:#9aa7cf;
+  --acc:#22d3ee; --acc2:#a78bfa; --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444;
+  --r:14px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{padding:calc(env(safe-area-inset-top) + 8px) 16px calc(env(safe-area-inset-bottom) + 24px)}
+.wrap{max-width:720px;margin:0 auto}
+header{display:flex;align-items:center;gap:10px;padding:8px 0 4px}
+header img{width:36px;height:36px;border-radius:9px}
+header h1{font-size:22px;margin:0;letter-spacing:.3px}
+header .sub{font-size:12px;color:var(--muted)}
+.note{background:#1b1630;border:1px solid #3b2f63;color:#d9d0ff;border-radius:12px;padding:10px 12px;font-size:13px;margin:10px 0 14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin:12px 0}
+.card h2{font-size:15px;margin:0 0 10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;display:flex;align-items:center;gap:8px}
+.step{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--acc);color:#04202a;font-size:12px;font-weight:700}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+button,.btn{appearance:none;border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:12px;padding:12px 12px;font:inherit;font-size:15px;cursor:pointer;min-height:46px;text-align:center}
+button:active{transform:scale(.98)}
+button.sel{border-color:var(--acc);background:#0f3340;box-shadow:0 0 0 1px var(--acc) inset}
+button.primary{background:linear-gradient(135deg,#0891b2,#7c3aed);border:0;font-weight:700}
+button.ghost{background:transparent}
+button.small{min-height:36px;padding:6px 10px;font-size:13px}
+button:disabled{opacity:.45}
+.big{font-size:17px;padding:16px}
+.big .ico{font-size:26px;display:block;margin-bottom:2px}
+input[type=text],input[type=search],select{width:100%;background:#0e1530;border:1px solid var(--line);color:var(--text);border-radius:12px;padding:12px;font:inherit;font-size:16px}
+label.lbl{font-size:13px;color:var(--muted);display:block;margin:8px 0 4px}
+input[type=range]{width:100%;accent-color:var(--acc)}
+.hidden,[hidden]{display:none!important}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:12px;padding:4px 9px;border-radius:999px;background:#0e1530;border:1px solid var(--line);color:var(--muted)}
+.stackname{font-size:19px;font-weight:700;margin:2px 0 6px}
+.targets{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.target{display:flex;justify-content:space-between;gap:8px;background:#0e1530;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:14px}
+.target b{color:var(--acc)}
+.target .rm{min-height:28px;padding:0 9px;font-size:13px}
+.preset{border-left:6px solid var(--c);text-align:left}
+.preset small{display:block;color:var(--muted);font-size:12px}
+canvas{width:100%;height:170px;display:block;background:#070b18;border-radius:12px;border:1px solid var(--line)}
+audio{width:100%;margin-top:10px}
+.now{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-top:6px;gap:8px}
+.now b{color:var(--text)}
+.res{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.res button{text-align:left}
+.res small{color:var(--muted);display:block;font-size:12px}
+.saved{display:flex;gap:6px;align-items:center}
+.saved button.load{flex:1;text-align:left}
+.diag li{font-size:13px;margin:3px 0}
+.diag .ok{color:var(--ok)} .diag .bad{color:var(--bad)}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 18px);transform:translateX(-50%);background:#0f3340;border:1px solid var(--acc);padding:10px 14px;border-radius:12px;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90vw;z-index:9}
+.toast.show{opacity:1}
+.tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:8px 0 0;position:sticky;top:calc(env(safe-area-inset-top));z-index:5;background:var(--bg);padding:6px 0}
+.tabs button{min-height:40px;font-size:14px}
+.gcard{background:var(--panel);border:1px solid var(--line);border-left:6px solid var(--c);border-radius:var(--r);padding:14px;margin:12px 0}
+.gname{font-size:18px;font-weight:700}
+.gsyn{font-size:14px;margin:0 0 8px}
+.gt{font-size:13px;background:#0e1530;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:6px 0}
+.gt b{color:var(--acc)} .gt small{color:var(--muted)} .gt div{color:#c9d2f2;margin-top:2px}
+.grp{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:8px;-webkit-overflow-scrolling:touch}
+.grp button{flex:0 0 auto;min-height:34px;padding:6px 12px;font-size:13px;border-radius:999px}
+.gh{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin:18px 4px 4px}
+.chatlog{display:flex;flex-direction:column;gap:10px;margin:8px 0}
+.msg{max-width:92%;padding:10px 12px;border-radius:14px;font-size:14px;line-height:1.45}
+.msg.me{align-self:flex-end;background:#0f3340;border:1px solid #155e75}
+.msg.bot{align-self:flex-start;background:var(--panel2);border:1px solid var(--line)}
+.msg .gt{margin:6px 0}
+.msg .row{margin-top:8px}
+.sugg{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.sugg button{min-height:32px;padding:4px 10px;font-size:12px;border-radius:999px}
+.chatin{display:flex;gap:8px;position:sticky;bottom:calc(env(safe-area-inset-bottom) + 6px);background:var(--bg);padding:6px 0}
+.chatin input{flex:1}
+.pw{position:relative;display:flex}
+.pw .preset{flex:1;padding-right:44px}
+.qbtn{position:absolute;top:6px;right:6px;min-height:32px!important;width:32px;padding:0!important;border-radius:50%!important;font-weight:700;font-size:15px!important;color:var(--acc)}
+.sheet{position:fixed;inset:0;z-index:20;background:rgba(3,6,15,.72);display:flex;align-items:flex-end;justify-content:center}
+.sheet-in{background:var(--panel);border:1px solid var(--line);border-radius:18px 18px 0 0;width:100%;max-width:720px;max-height:88vh;overflow-y:auto;padding:14px 16px calc(env(safe-area-inset-bottom) + 18px);overscroll-behavior:contain}
+.sheet-top{display:flex;gap:8px;position:sticky;top:-14px;background:var(--panel);padding:8px 0;margin-top:-8px;z-index:1}
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:15;background:rgba(11,16,32,.96);border-top:1px solid var(--line);padding:8px max(16px,env(safe-area-inset-left,0px)) calc(env(safe-area-inset-bottom,0px) + 8px) max(16px,env(safe-area-inset-right,0px))}
+.bar-in{max-width:720px;margin:0 auto;display:flex;gap:8px;align-items:center}
+.bar .nm{flex:1;min-width:0;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar button{min-height:40px;font-size:14px}
+body.hasbar{padding-bottom:calc(env(safe-area-inset-bottom) + 84px)}
+body.hasbar .toast{bottom:calc(env(safe-area-inset-bottom) + 78px)}
+.crumb{font-size:13px;color:var(--muted);margin-bottom:8px}
+.crumb b{color:var(--text)}
+footer{font-size:12px;color:var(--muted);text-align:center;margin-top:18px}
+details summary{cursor:pointer;color:var(--muted);font-size:14px}
+@media (max-width:380px){.grid3{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <img src="icon-192.png" alt="">
+  <div><h1>Proteodyne</h1><div class="sub">Sunete din secvențe de aminoacizi</div></div>
+</header>
+
+<nav class="tabs"><button data-view="gen" class="sel">Generator</button><button data-view="chat">Asistent</button><button data-view="guide">Ghid stive</button></nav>
+
+<div class="note"><b>Notă:</b> Proteodyne este un instrument experimental de sunet și relaxare. Nu are efect terapeutic dovedit și nu înlocuiește tratamentul sau sfatul medicului. Ascultă la volum moderat.</div>
+
+<div id="view-gen">
+<!-- PAS 1 -->
+<section class="card" id="sec-sex">
+  <h2><span class="step">1</span> Pentru cine este sesiunea</h2>
+  <div class="grid3">
+    <button class="big" data-sex="F"><span class="ico">♀</span>Femeie</button>
+    <button class="big" data-sex="M"><span class="ico">♂</span>Bărbat</button>
+    <button class="big" data-sex="U"><span class="ico">⚥</span>Universal</button>
+  </div>
+  <label class="lbl">Vârstă (ajustează tempo și timbru)</label>
+  <div class="grid3" id="age-row">
+    <button class="small" data-age="copil">Copil</button>
+    <button class="small sel" data-age="adult">Adult</button>
+    <button class="small" data-age="senior">Senior</button>
+  </div>
+</section>
+
+<!-- PAS 2 -->
+<section class="card hidden" id="sec-cat">
+  <h2><span class="step">2</span> Alege zona sau caută</h2>
+  <input type="search" id="search" placeholder="Caută boală, disfuncție sau problemă (ex. insomnie, artroză, imunitate)" autocomplete="off">
+  <div class="res" id="search-res"></div>
+  <div class="grid2" style="margin-top:10px" id="cat-row">
+    <button class="big" data-cat="organe"><span class="ico">🫀</span>Organe</button>
+    <button class="big" data-cat="sisteme"><span class="ico">🧠</span>Sisteme</button>
+    <button class="big" data-cat="musculo"><span class="ico">🦴</span>Musculoscheletic</button>
+    <button class="big" data-cat="sange"><span class="ico">🩸</span>Sânge</button>
+  </div>
+</section>
+
+<!-- PAS 3 -->
+<section class="card hidden" id="sec-part">
+  <h2><span class="step">3</span> <span id="part-title">Alege</span></h2>
+  <div class="grid2" id="part-row"></div>
+</section>
+
+<!-- PAS 4 -->
+<section class="card hidden" id="sec-act">
+  <h2><span class="step">4</span> Ce vrei să lucrezi</h2>
+  <div class="crumb" id="act-crumb"></div>
+  <div class="grid2" id="act-row"></div>
+</section>
+
+<!-- STIVE PREDEFINITE -->
+<section class="card" id="sec-presets">
+  <h2>Stive predefinite</h2>
+  <div class="grid3" id="sex-row2" style="margin-bottom:8px"><button class="small" data-sex2="F">♀ Femeie</button><button class="small" data-sex2="M">♂ Bărbat</button><button class="small" data-sex2="U">⚥ Universal</button></div>
+  <div class="grp" id="grp-row"></div>
+  <div class="grid2" id="preset-row"></div>
+</section>
+
+<!-- STIVA CURENTĂ -->
+<section class="card hidden" id="sec-stack">
+  <h2>Stiva curentă <button class="small qbtn" id="stack-q" style="position:static;margin-left:auto" aria-label="Explicație">?</button></h2>
+  <div class="stackname" id="stack-name"></div>
+  <div class="chips" id="stack-chips"></div>
+  <div class="targets" id="stack-targets"></div>
+  <div class="row" style="margin-top:10px">
+    <button class="primary" style="flex:1" id="btn-gen">▶ Generează și redă</button>
+  </div>
+  <button class="small" style="width:100%;margin-top:8px" id="btn-mood">Preset potrivit</button>
+  <div class="row" style="margin-top:8px">
+    <input type="text" id="save-name" placeholder="Nume pentru salvare (ex. Refacere Spate)" style="flex:1">
+    <button id="btn-save">Salvează</button>
+  </div>
+</section>
+
+<!-- PLAYER -->
+<section class="card" id="sec-player">
+  <h2>Melodie și export</h2>
+  <canvas id="viz" width="1200" height="340"></canvas>
+  <div class="now"><span>Țintă: <b id="now-target">–</b></span><span>Aminoacid: <b id="now-aa">–</b></span><span><b id="now-hz">–</b></span></div>
+  <audio id="audio" controls playsinline preload="auto"></audio>
+  <div class="grid2" style="margin-top:6px">
+    <div><label class="lbl">Tempo: <b id="bpm-v">84</b> BPM</label><input type="range" id="bpm" min="50" max="140" value="84"></div>
+    <div><label class="lbl">Volum: <b id="vol-v">60</b>%</label><input type="range" id="vol" min="10" max="100" value="60"></div>
+    <div><label class="lbl">Timbru</label>
+      <select id="timbre">
+        <option value="cald">Cald</option>
+        <option value="flaut">Flaut armonic</option>
+        <option value="sinus">Sinus pur</option>
+        <option value="clopot">Clopot moale</option>
+        <option value="pad">Pad ambiental</option>
+      </select></div>
+    <div><label class="lbl">Durată</label>
+      <select id="dur">
+        <option value="0">O trecere</option>
+        <option value="60">1 minut</option>
+        <option value="180" selected>3 minute</option>
+        <option value="300">5 minute</option>
+      </select></div>
+  </div>
+  <label class="lbl"><input type="checkbox" id="loop"> Repetă continuu</label>
+  <label class="lbl"><input type="checkbox" id="drone" checked> Fundal armonic (dronă)</label>
+  <div class="grid3" style="margin-top:8px">
+    <button id="btn-test" class="small">Test sunet</button>
+    <button id="btn-wav" class="small" disabled>Export .wav</button>
+    <button id="btn-mid" class="small" disabled>Export .mid</button>
+  </div>
+</section>
+
+<!-- STIVELE MELE -->
+<section class="card" id="sec-mine">
+  <h2>Stivele mele</h2>
+  <div id="mine-list" class="res"></div>
+  <div class="row" style="margin-top:8px">
+    <button class="small" id="btn-export-json">Export listă</button>
+    <label class="btn small" style="min-height:36px;padding:8px 10px;font-size:13px">Import listă<input type="file" id="import-json" accept="application/json,.json" hidden></label>
+  </div>
+</section>
+
+<!-- DIAGNOSTIC -->
+<section class="card">
+  <h2>Diagnostic funcții</h2>
+  <button class="small" id="btn-diag">Rulează testele</button>
+  <ul class="diag" id="diag"></ul>
+</section>
+
+<details class="card">
+  <summary>Cum funcționează</summary>
+  <p style="font-size:14px;color:var(--muted)">Fiecare aminoacid are o masă moleculară. Aplicația transformă masa într-o frecvență (prin octave, inspirat de ideea „proteodiilor” a lui J. Sternheimer) și o potrivește pe o gamă pentatonică, ca melodia să sune plăcut. O stivă leagă mai multe secvențe una după alta. Sunetul se calculează direct pe telefon ca fișier WAV (44,1 kHz, 16-bit, mono), deci merge și fără internet.</p>
+  <p style="font-size:14px;color:var(--muted)">Secvențele din aplicație sunt fragmente scurte, ilustrative, asociate cu numele proteinelor. Nu sunt secvențele complete din UniProt. Alegerea zonei și a acțiunii schimbă doar ce melodie se generează.</p>
+</details>
+
+</div>
+
+<div id="view-chat" class="hidden">
+  <section class="card">
+    <h2>Asistent stive</h2>
+    <p style="font-size:14px;color:var(--muted);margin:0">Scrie cu cuvintele tale ce nevoie ai (ex. „nu dorm bine și am dureri de spate”). Asistentul alege țintele potrivite din bibliotecă, îți explică fiecare element și ce reprezintă împreună. Poți apoi scrie „adaugă BDNF”, „scoate OXT”, „mai calm”, „mai alert” sau „ce este NRF2?”. Funcționează direct pe telefon, fără internet.</p>
+    <div class="chatlog" id="chatlog"></div>
+    <div class="chatin"><input type="text" id="chat-q" placeholder="Scrie nevoia ta…" autocomplete="off"><button class="primary" id="chat-send">Trimite</button></div>
+    <button class="small ghost" id="chat-clear" style="margin-top:4px">Șterge conversația</button>
+  </section>
+</div>
+<div id="view-guide" class="hidden">
+  <section class="card">
+    <h2>Ghid stive</h2>
+    <p style="font-size:14px;color:var(--muted);margin:0">Pentru fiecare stivă găsești ce este și ce face fiecare proteină în corp (rolul biologic cunoscut) și tema comună a stivei. Tema descrie ce reprezintă combinația, nu un efect dovedit al ascultării.</p>
+  </section>
+  <input type="search" id="guide-q" placeholder="Caută o stivă, o proteină sau o problemă (ex. somn, BDNF, spate)" autocomplete="off" style="margin:6px 0 4px">
+  <div id="guide-empty" class="gh" hidden>Nicio stivă găsită</div>
+  <div id="mine-guide"></div>
+  <div id="guide-list"></div>
+  <section class="card">
+    <h2>Toate țintele (A–Z)</h2>
+    <input type="search" id="gloss-q" placeholder="Caută o proteină sau un rol (ex. somn, colagen, fier)">
+    <div id="gloss" style="margin-top:8px"></div>
+  </section>
+</div>
+
+<footer>Proteodyne • instrument experimental de sunet și relaxare • nu este un dispozitiv medical</footer>
+</div>
+<div class="toast" id="toast"></div>
+<div class="sheet" id="sheet" hidden><div class="sheet-in" id="sheet-in">
+  <div class="sheet-top"><button class="small" id="sheet-back">← Înapoi</button><button class="small primary" id="sheet-load" style="flex:1">Încarcă + preset potrivit</button></div>
+  <div id="sheet-body"></div>
+</div></div>
+<div class="bar" id="bar" hidden><div class="bar-in">
+  <span class="nm" id="bar-name"></span>
+  <button class="small" id="bar-info" aria-label="Explicație">?</button>
+  <button class="small" id="bar-view">Vezi</button>
+  <button class="small primary" id="bar-play">▶ Redă</button>
+</div></div>
+
+<script src="app.js"></script>
+</body>
+</html>
