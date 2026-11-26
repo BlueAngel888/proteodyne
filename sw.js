@@ -1,4 +1,4 @@
-const CACHE = 'proteodyne-v18';
+const CACHE = 'proteodyne-v19';
 const FILES = ['./', './index.html', './app.js', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
@@ -12,6 +12,7 @@ self.addEventListener('activate', e => {
 // Rețea întâi (ca să primești actualizări), cache când ești offline.
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
+  if (new URL(e.request.url).origin !== self.location.origin) return; // cererile către UniProt merg direct la rețea
   e.respondWith(
     fetch(e.request).then(res => {
       const copy = res.clone();

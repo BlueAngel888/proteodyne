@@ -152,6 +152,7 @@ body.hasbar .toast{bottom:calc(env(safe-area-inset-bottom) + 78px)}
 footer{font-size:12px;color:var(--muted);text-align:center;margin-top:18px}
 details summary{cursor:pointer;color:var(--muted);font-size:14px}
 @media (max-width:380px){.grid3{grid-template-columns:1fr 1fr}}
+.pcr{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px}.pcr span:first-child{color:var(--muted)}.pcseq{font-family:ui-monospace,Menlo,monospace;font-size:13px;word-break:break-all;background:#0e1530;border:1px solid var(--line);border-radius:10px;padding:8px;margin-top:8px;color:#a5f3fc}.upb{display:flex;flex-direction:column;gap:6px;flex:none}
 </style>
 </head>
 <body>
@@ -168,6 +169,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px}
 
 <div id="view-gen">
 <div class="instbar hidden" id="instbar"><span data-ic="phone"></span><span>Pune Proteodyne pe ecranul telefonului, ca o aplicație.</span><button class="small primary" id="inst-open">Arată-mi cum</button><button class="small" id="inst-x" aria-label="Închide">✕</button></div>
+<section class="card" id="potd"><h2><span data-ic="pre"></span> Proteina zilei</h2><div id="potd-body" style="font-size:14px"></div><div class="grid2" style="margin-top:8px"><button class="small primary" id="potd-play">▶ Ascultă</button><button class="small" id="potd-card">Fișa proteinei</button></div></section>
 <nav class="subtabs"><button data-sub="custom" class="sel"><span data-ic="custom"></span>Custom</button><button data-sub="pre"><span data-ic="pre"></span>Predefinite</button></nav>
 <section class="card" id="sec-dom">
   <h2>Pentru cine generezi</h2>
@@ -227,6 +229,14 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px}
   <div class="optbar"><span id="opt-hint">Apasă + pe ce vrei să adaugi. ? îți spune ce face.</span><button class="small" id="opt-all">+ Toate</button></div>
   <div class="opts" id="opt-row"></div>
 </section>
+<section class="card" id="sec-up">
+  <h2>Caută în UniProt</h2>
+  <p style="font-size:13px;color:var(--muted);margin:0 0 8px">Scrie numele sau codul unei proteine și adaug-o în stiva ta, cu secvența ei reală. Căutarea are nevoie de internet. Ce adaugi rămâne în telefon și merge apoi și fără internet.</p>
+  <div class="row"><input type="search" id="up-q" placeholder="Nume sau cod (ex. insulin, collagen, P01308)" autocomplete="off" style="flex:1"><button class="primary" id="up-go">Caută</button></div>
+  <div class="grid2" style="margin-top:8px;align-items:center"><select id="up-org" aria-label="Organism"><option value="9606">Om</option><option value="">Toate organismele</option><option value="9913">Vacă</option><option value="9823">Porc</option><option value="9031">Găină</option><option value="9615">Câine</option><option value="9685">Pisică</option><option value="7460">Albină</option><option value="4081">Roșie</option><option value="4113">Cartof</option><option value="4577">Porumb</option><option value="4565">Grâu</option><option value="29760">Viță-de-vie</option></select><label style="font-size:13px;display:flex;gap:6px;align-items:center"><input type="checkbox" id="up-rev" checked> Doar proteine verificate</label></div>
+  <div class="targets" id="up-res" style="margin-top:8px"></div>
+  <div id="up-mine"></div>
+</section>
 </div>
 <div id="sub-pre" class="hidden">
 <!-- STIVE PREDEFINITE -->
@@ -276,7 +286,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px}
       <select id="timbre">
         <option value="cald">Cald</option>
         <option value="flaut">Flaut armonic</option>
-        <option value="sinus">Sinus pur</option>
+        <option value="sinus">Sternheimer original (ton pur)</option>
         <option value="clopot">Clopot moale</option>
         <option value="pad">Pad ambiental</option>
         <option value="handpan">Handpan</option>
@@ -299,8 +309,8 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px}
       </select></div>
     <div><label class="lbl">Calitate sunet</label>
       <select id="qual">
-        <option value="std" selected>Standard 16-bit</option>
-        <option value="hi">Studio 24-bit</option>
+        <option value="std">Standard 16-bit</option>
+        <option value="hi" selected>Studio 24-bit</option>
       </select></div>
   </div>
   <div class="sizeinfo" id="size-info"></div>
@@ -337,7 +347,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px}
 <details class="card">
   <summary>Cum funcționează</summary>
   <p style="font-size:14px;color:var(--muted)">Fiecare aminoacid are o masă moleculară. Aplicația transformă masa într-o frecvență (prin octave, inspirat de ideea „proteodiilor” a lui J. Sternheimer) și (în modul „Pentatonic calm”) o potrivește pe o gamă pentatonică, ca melodia să sune plăcut. În modul „Sternheimer” folosește tabelul de note din brevetul lui: glicina este La grav, 220 Hz, pe gama cromatică temperată. O stivă leagă mai multe secvențe una după alta. Sunetul se calculează direct pe telefon ca fișier WAV (44,1 kHz, 16-bit, mono), deci merge și fără internet.</p>
-  <p style="font-size:14px;color:var(--muted)">Aplicația folosește secvențele reale, complete, din baza de date UniProt, pentru 235 de proteine. Fiecare proteină se cântă de la primul la ultimul aminoacid, iar stivele lungi se împart în părți care continuă una după alta. Cele câteva ținte fără cod UniProt verificat folosesc un fragment ilustrativ și sunt marcate „fragment ilustrativ”. Fiecare țintă are un cod de note: „stimulare” sau „inhibare” (tabelul în oglindă din brevetul lui Sternheimer), pe care îl poți schimba.</p>
+  <p style="font-size:14px;color:var(--muted)">Aplicația folosește secvențele reale, complete, din baza de date UniProt, pentru 247 de proteine. Fiecare proteină se cântă de la primul la ultimul aminoacid, iar stivele lungi se împart în părți care continuă una după alta. Poți adăuga și alte proteine cu „Caută în UniProt”. Fiecare țintă are un cod de note: „stimulare” sau „inhibare” (tabelul în oglindă din brevetul lui Sternheimer), pe care îl poți schimba.</p>
 </details>
 
 </div>
@@ -346,6 +356,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px}
   <section class="card">
     <h2>Asistent stive</h2>
     <p style="font-size:14px;color:var(--muted);margin:0">Scrie cu cuvintele tale ce nevoie ai (ex. „nu dorm bine și am dureri de spate”). Asistentul alege țintele potrivite din bibliotecă, îți explică fiecare element și ce reprezintă împreună. Poți apoi scrie „adaugă BDNF”, „scoate OXT”, „mai calm”, „mai alert” sau „ce este NRF2?”. Funcționează direct pe telefon, fără internet.</p>
+    <p style="font-size:13px;color:var(--muted);margin:8px 0 0">Cu internet, poți scrie și „caută insulin” sau „caută sleep”. Asistentul caută în baza de date UniProt și îți formează o stivă din proteinele găsite, cu secvențele lor reale.</p>
     <div class="chatlog" id="chatlog"></div>
     <div class="chatin"><input type="text" id="chat-q" placeholder="Scrie nevoia ta…" autocomplete="off"><button class="primary" id="chat-send">Trimite</button></div>
     <div id="chat-quota" style="font-size:12px;margin-top:4px;color:#94a3b8"></div>
@@ -371,9 +382,10 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px}
 <details class="note" id="howto" style="margin-top:14px"><summary style="cursor:pointer;font-weight:700;color:var(--acc)">Cum să asculți</summary><p style="margin:10px 0 6px">Câteva sugestii simple, ca să te bucuri cât mai mult de fiecare ascultare.</p><ul style="margin:0;padding-left:20px;display:grid;gap:8px"><li>Alege o singură temă pe sesiune. O stivă ascultată cu atenție face mai mult decât mai multe ascultate pe fugă.</li><li>Ascultă 5–10 minute, o dată pe zi. Sternheimer lucra cu sesiuni scurte, de câteva minute.</li><li>Stivele lungi sunt împărțite în părți. Ascultă o parte pe sesiune și continuă data viitoare cu „Partea următoare”.</li><li>Mai bine puțin în fiecare zi decât mult dintr-odată. Alege un moment fix, de exemplu dimineața sau seara.</li><li>Găsește un loc liniștit, stai comod, închide ochii și respiră lent. Lasă melodia să curgă fără să o analizezi.</li><li>Folosește căști sau un difuzor bun, la volum mic spre mediu, cât să fie plăcut.</li><li>Ghidează-te după cum te simți. Cât timp melodia îți place, ascult-o. Când simți că e destul, fă o pauză și revino altă dată. Așa recomanda și Sternheimer.</li><li>Pentru sunetul cel mai apropiat de metoda originală, păstrează acordul „Sternheimer” și alege un timbru curat: Sinus, Flaut sau Cald.</li><li>Pentru plante și animale, pune sunetul la un difuzor, la volum mic, câteva minute pe zi.</li><li>Poți nota într-un jurnal ce ai ascultat și cum te-ai simțit, ca să vezi ce ți se potrivește.</li><li>Folosește aplicația alături de un stil de viață sănătos și de tratamentul recomandat de medic.</li></ul></details>
 <div class="note" style="margin-top:14px"><b>Notă:</b> Proteodyne este un instrument experimental de sunet, inspirat de cercetările lui Joël Sternheimer despre „proteodii”. Ipoteza lui este că o melodie construită din secvența de aminoacizi a unei proteine ar putea stimula, țintit, producerea acelei proteine în organism. Ipoteza nu este dovedită științific: aplicația nu are efect terapeutic demonstrat și nu înlocuiește tratamentul sau sfatul medicului ori al medicului veterinar. Fiecare o folosește pe propria răspundere. Ascultă la volum moderat.</div>
 <button class="small footlink" id="inst-foot"><span data-ic="phone"></span> Cum instalez aplicația pe telefon</button>
-<footer>Proteodyne • instrument experimental de sunet și relaxare • nu este un dispozitiv medical<br>Contact: <a href="mailto:proteodyne@gmail.com" style="color:var(--acc)">proteodyne@gmail.com</a></footer>
+<footer>Proteodyne • instrument experimental de sunet și relaxare • nu este un dispozitiv medical<br>Secvențe de proteine: <a href="https://www.uniprot.org" target="_blank" rel="noopener" style="color:var(--acc)">UniProt</a> (licență CC BY 4.0)<br>Contact: <a href="mailto:proteodyne@gmail.com" style="color:var(--acc)">proteodyne@gmail.com</a></footer>
 </div>
 <div class="toast" id="toast"></div>
+<div class="sheet" id="pc" hidden><div class="sheet-in"><div class="sheet-top"><button class="small" id="pc-back">← Înapoi</button><b style="flex:1;align-self:center;text-align:center">Fișa proteinei</b></div><div id="pc-body"></div></div></div>
 <div class="sheet" id="inst" hidden><div class="sheet-in">
   <div class="sheet-top"><button class="small" id="inst-back">← Înapoi</button><b style="flex:1;align-self:center;text-align:center">Instalează pe telefon</b></div>
   <p style="color:var(--muted);font-size:14px;margin:6px 0 0">Durează 10 secunde. După instalare, Proteodyne se deschide ca o aplicație și merge și fără internet.</p>
