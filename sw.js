@@ -1,4 +1,4 @@
-const CACHE = 'proteodyne-v16';
+const CACHE = 'proteodyne-v17';
 const FILES = ['./', './index.html', './app.js', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
