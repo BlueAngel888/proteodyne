@@ -81,6 +81,17 @@ audio{width:100%;margin-top:10px}
 .gsyn{font-size:14px;margin:0 0 8px}
 .gt{font-size:13px;background:#0e1530;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:6px 0}
 .gt b{color:var(--acc)} .gt small{color:var(--muted)} .gt div{color:#c9d2f2;margin-top:2px}
+.subtabs{position:sticky;top:calc(env(safe-area-inset-top) + 58px);z-index:4;display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:10px 0 2px;padding:4px;border-radius:14px;background:#0e1530;border:1px solid var(--line)}
+.subtabs button{min-height:42px;border:none!important;background:transparent;font-weight:700;font-size:15px;border-radius:10px!important}
+.subtabs button.sel{background:linear-gradient(135deg,#0e7490,#6d28d9);color:#fff}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ocard{position:relative;background:#0e1530;border:1px solid var(--line);border-radius:12px;padding:9px 40px 9px 10px;min-height:92px}
+.ocard b{color:var(--acc);font-size:14px}.ocard .on{font-size:12.5px;margin-top:1px}
+.ocard .od{font-size:11.5px;color:var(--muted);margin-top:4px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.ocard .ob{position:absolute;right:5px;min-height:30px!important;width:30px;padding:0!important;border-radius:50%!important;font-weight:700}
+.ocard .oq{top:6px;color:var(--acc)}.ocard .oa{top:42px;color:#4ade80;font-size:18px!important}
+.ocard.in{border-color:#4ade80;box-shadow:0 0 0 1px #4ade8055 inset}.ocard.in .oa{background:#14532d;color:#bbf7d0}
+.optbar{display:flex;gap:8px;align-items:center;margin-bottom:8px;font-size:13px;color:var(--muted)}.optbar span{flex:1}
 .grp{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:8px;-webkit-overflow-scrolling:touch}
 .grp button{flex:0 0 auto;min-height:34px;padding:6px 12px;font-size:13px;border-radius:999px}
 .gh{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin:18px 4px 4px}
@@ -140,6 +151,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px}
 <div class="note"><b>Notă:</b> Proteodyne este un instrument experimental de sunet, inspirat de cercetările lui Joël Sternheimer despre „proteodii”. Ipoteza lui este că o melodie construită din secvența de aminoacizi a unei proteine ar putea stimula, țintit, producerea acelei proteine în organism. Ipoteza nu este dovedită științific: aplicația nu are efect terapeutic demonstrat și nu înlocuiește tratamentul sau sfatul medicului ori al medicului veterinar. Fiecare o folosește pe propria răspundere. Ascultă la volum moderat.</div>
 
 <div id="view-gen">
+<nav class="subtabs"><button data-sub="custom" class="sel">🛠️ Custom</button><button data-sub="pre">✨ Predefinite</button></nav>
 <section class="card" id="sec-dom">
   <h2>Pentru cine generezi</h2>
   <div class="grid4">
@@ -150,6 +162,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px}
   </div>
   <div class="domnote" id="dom-note"></div>
 </section>
+<div id="sub-custom">
 <!-- PAS 1 -->
 <section class="card" id="sec-sex">
   <h2><span class="step">1</span> Pentru cine este sesiunea</h2>
@@ -192,6 +205,13 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px}
   <div class="grid2" id="act-row"></div>
 </section>
 
+<section class="card hidden" id="sec-opts">
+  <h2>Alege ce intră în stivă</h2>
+  <div class="optbar"><span id="opt-hint">Apasă + pe ce vrei să adaugi. ? îți spune ce face.</span><button class="small" id="opt-all">+ Toate</button></div>
+  <div class="opts" id="opt-row"></div>
+</section>
+</div>
+<div id="sub-pre" class="hidden">
 <!-- STIVE PREDEFINITE -->
 <section class="card" id="sec-presets">
   <h2 id="presets-h">Stive predefinite</h2>
@@ -200,6 +220,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px}
   <div class="grid2" id="preset-row"></div>
 </section>
 
+</div>
 <!-- STIVA CURENTĂ -->
 <section class="card hidden" id="sec-stack">
   <h2>Stiva curentă <button class="small qbtn" id="stack-q" style="position:static;margin-left:auto" aria-label="Explicație">?</button></h2>
