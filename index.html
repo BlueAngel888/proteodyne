@@ -137,7 +137,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px}
 
 <nav class="tabs"><button data-view="gen" class="sel">Generator</button><button data-view="chat">Asistent</button><button data-view="guide">Ghid stive</button></nav>
 
-<div class="note"><b>Notă:</b> Proteodyne este un instrument experimental de sunet și relaxare. Nu are efect terapeutic dovedit și nu înlocuiește tratamentul sau sfatul medicului. Ascultă la volum moderat.</div>
+<div class="note"><b>Notă:</b> Proteodyne este un instrument experimental de sunet, inspirat de cercetările lui Joël Sternheimer despre „proteodii”. Ipoteza lui este că o melodie construită din secvența de aminoacizi a unei proteine ar putea stimula, țintit, producerea acelei proteine în organism. Ipoteza nu este dovedită științific: aplicația nu are efect terapeutic demonstrat și nu înlocuiește tratamentul sau sfatul medicului ori al medicului veterinar. Fiecare o folosește pe propria răspundere. Ascultă la volum moderat.</div>
 
 <div id="view-gen">
 <section class="card" id="sec-dom">
@@ -257,6 +257,9 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px}
     <button id="btn-wav" class="small" disabled>Export .wav</button>
     <button id="btn-mid" class="small" disabled>Export .mid</button>
   </div>
+  <label class="lbl" for="fname" style="margin-top:10px;display:block">Numele fișierului audio</label>
+  <div style="display:flex;gap:8px;margin-top:4px"><input id="fname" type="text" maxlength="60" placeholder="ex. somn-liniștit" style="flex:1;min-width:0"><button id="btn-share" class="small" disabled>📤 Salvează / Trimite</button></div>
+  <div class="hint" id="save-hint" style="font-size:12.5px;color:var(--muted);margin-top:6px">Export .wav pune fișierul în folderul Descărcări (Download) al telefonului: în aplicația Fișiere, deschide Descărcări. Cu 📤 alegi tu unde îl salvezi (Fișiere, Drive, WhatsApp...).</div>
 </section>
 
 <!-- STIVELE MELE -->
