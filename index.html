@@ -114,6 +114,14 @@ audio{width:100%;margin-top:10px}
 .pw{position:relative;display:flex}
 .pw .preset{flex:1;padding-right:44px}
 .qbtn{position:absolute;top:6px;right:6px;min-height:32px!important;width:32px;padding:0!important;border-radius:50%!important;font-weight:700;font-size:15px!important;color:var(--acc)}
+.instbar{display:flex;align-items:center;gap:8px;margin:10px 0 0;padding:8px 8px 8px 12px;border-radius:14px;border:1px solid #22d3ee55;background:linear-gradient(135deg,#0e749033,#6d28d933);font-size:14px}
+.instbar>span{flex:1;line-height:1.3}.instbar>span[data-ic]{flex:none;font-size:20px}.instbar button{min-height:36px}
+.inst-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:10px 0}
+.inst-steps{list-style:none;padding:0;margin:0;counter-reset:st}
+.inst-steps li{counter-increment:st;display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line);font-size:15px;line-height:1.4}
+.inst-steps li:before{content:counter(st);flex:none;width:26px;height:26px;border-radius:50%;background:var(--acc);color:#04121a;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:14px}
+.inst-steps .ic{width:1.3em;height:1.3em}
+.footlink{display:block;margin:10px auto 0;font-size:13px}
 .sheet{position:fixed;inset:0;z-index:20;background:rgba(3,6,15,.72);display:flex;align-items:flex-end;justify-content:center}
 .sheet-in{background:var(--panel);border:1px solid var(--line);border-radius:18px 18px 0 0;width:100%;max-width:720px;max-height:88vh;overflow-y:auto;padding:14px 16px calc(env(safe-area-inset-bottom) + 18px);overscroll-behavior:contain}
 .sheet-top{display:flex;gap:8px;position:sticky;top:-14px;background:var(--panel);padding:8px 0;margin-top:-8px;z-index:1}
@@ -156,6 +164,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px}
 <nav class="tabs"><button data-view="gen" class="sel">Generator</button><button data-view="chat">Asistent</button><button data-view="guide">Ghid stive</button></nav>
 
 <div id="view-gen">
+<div class="instbar hidden" id="instbar"><span data-ic="phone"></span><span>Pune Proteodyne pe ecranul telefonului, ca o aplicație.</span><button class="small primary" id="inst-open">Arată-mi cum</button><button class="small" id="inst-x" aria-label="Închide">✕</button></div>
 <nav class="subtabs"><button data-sub="custom" class="sel"><span data-ic="custom"></span>Custom</button><button data-sub="pre"><span data-ic="pre"></span>Predefinite</button></nav>
 <section class="card" id="sec-dom">
   <h2>Pentru cine generezi</h2>
@@ -353,9 +362,18 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px}
 </div>
 
 <div class="note" style="margin-top:14px"><b>Notă:</b> Proteodyne este un instrument experimental de sunet, inspirat de cercetările lui Joël Sternheimer despre „proteodii”. Ipoteza lui este că o melodie construită din secvența de aminoacizi a unei proteine ar putea stimula, țintit, producerea acelei proteine în organism. Ipoteza nu este dovedită științific: aplicația nu are efect terapeutic demonstrat și nu înlocuiește tratamentul sau sfatul medicului ori al medicului veterinar. Fiecare o folosește pe propria răspundere. Ascultă la volum moderat.</div>
-<footer>Proteodyne • instrument experimental de sunet și relaxare • nu este un dispozitiv medical</footer>
+<button class="small footlink" id="inst-foot"><span data-ic="phone"></span> Cum instalez aplicația pe telefon</button>
+<footer>Proteodyne • instrument experimental de sunet și relaxare • nu este un dispozitiv medical<br>Contact: <a href="mailto:proteodyne@gmail.com" style="color:var(--acc)">proteodyne@gmail.com</a></footer>
 </div>
 <div class="toast" id="toast"></div>
+<div class="sheet" id="inst" hidden><div class="sheet-in">
+  <div class="sheet-top"><button class="small" id="inst-back">← Înapoi</button><b style="flex:1;align-self:center;text-align:center">Instalează pe telefon</b></div>
+  <p style="color:var(--muted);font-size:14px;margin:6px 0 0">Durează 10 secunde. După instalare, Proteodyne se deschide ca o aplicație și merge și fără internet.</p>
+  <div class="inst-tabs"><button data-os="ios">iPhone / iPad</button><button data-os="android">Android</button></div>
+  <ol class="inst-steps" id="inst-ios"></ol>
+  <ol class="inst-steps hidden" id="inst-android"></ol>
+  <button class="primary hidden" id="inst-now" style="width:100%;margin-top:12px">Instalează acum</button>
+</div></div>
 <div class="sheet" id="sheet" hidden><div class="sheet-in" id="sheet-in">
   <div class="sheet-top"><button class="small" id="sheet-back">← Înapoi</button><button class="small primary" id="sheet-load" style="flex:1">Încarcă + preset</button><button class="small" id="sheet-mix">+ Combinație</button></div>
   <div id="sheet-body"></div>
