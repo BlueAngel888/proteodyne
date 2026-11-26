@@ -170,7 +170,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px}
 <div id="view-gen">
 <div class="instbar hidden" id="instbar"><span data-ic="phone"></span><span>Pune Proteodyne pe ecranul telefonului, ca o aplicație.</span><button class="small primary" id="inst-open">Arată-mi cum</button><button class="small" id="inst-x" aria-label="Închide">✕</button></div>
 <section class="card" id="potd"><h2><span data-ic="pre"></span> Proteina zilei</h2><div id="potd-body" style="font-size:14px"></div><div class="grid2" style="margin-top:8px"><button class="small primary" id="potd-play">▶ Ascultă</button><button class="small" id="potd-card">Fișa proteinei</button></div></section>
-<nav class="subtabs"><button data-sub="custom" class="sel"><span data-ic="custom"></span>Custom</button><button data-sub="pre"><span data-ic="pre"></span>Predefinite</button></nav>
+<nav class="subtabs"><button data-sub="pre"><span data-ic="pre"></span>Predefinite</button><button data-sub="custom" class="sel"><span data-ic="custom"></span>Custom</button></nav>
 <section class="card" id="sec-dom">
   <h2>Pentru cine generezi</h2>
   <div class="grid4">
@@ -364,6 +364,15 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px}
     <div class="chatin"><input type="text" id="chat-q" placeholder="Scrie nevoia ta…" autocomplete="off"><button class="primary" id="chat-send">Trimite</button></div>
     <div id="chat-quota" style="font-size:12px;margin-top:4px;color:#94a3b8"></div>
     <button class="small ghost" id="chat-clear" style="margin-top:4px">Șterge conversația</button>
+  </section>
+  <section class="card hidden" id="sec-req">
+    <h2>Ce caută oamenii</h2>
+    <p style="font-size:13px;color:var(--muted);margin:0 0 8px">Temele cerute Asistentului de toți cei care folosesc aplicația. Se adună anonim doar tema găsită, niciodată textul scris de tine.</p>
+    <div class="lbl" style="margin-top:6px">Ultimele 10 cereri</div>
+    <div id="req-recent"></div>
+    <div class="lbl" style="margin-top:12px" id="req-top-h">Top 10 din toate timpurile</div>
+    <div id="req-top"></div>
+    <div id="req-note" style="font-size:12px;color:#94a3b8;margin-top:8px"></div>
   </section>
 </div>
 <div id="view-guide" class="hidden">
