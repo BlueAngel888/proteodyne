@@ -61,7 +61,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
 .target .rm{min-height:28px;padding:0 9px;font-size:13px}
 .preset{border-left:6px solid var(--c);text-align:left}
 .preset small{display:block;color:var(--muted);font-size:12px}
-canvas{width:100%;height:170px;display:block;background:#070b18;border-radius:12px;border:1px solid var(--line)}
+canvas{width:100%;height:190px;display:block;background:#070b18;border-radius:12px;border:1px solid var(--line)}
 audio{width:100%;margin-top:10px}
 .now{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-top:6px;gap:8px}
 .now b{color:var(--text)}
@@ -81,6 +81,12 @@ audio{width:100%;margin-top:10px}
 .gsyn{font-size:14px;margin:0 0 8px}
 .gt{font-size:13px;background:#0e1530;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:6px 0}
 .gt b{color:var(--acc)} .gt small{color:var(--muted)} .gt div{color:#c9d2f2;margin-top:2px}
+.ic{width:1.25em;height:1.25em;vertical-align:-.24em;fill:none;stroke:url(#ig);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.big .ico .ic{width:30px;height:30px;display:block;margin:0 auto 4px;filter:drop-shadow(0 0 6px #22d3ee55)}
+.grid4 .big .ico .ic{width:28px;height:28px}
+.subtabs button .ic,#grp-row .ic,#btn-share .ic{margin-right:6px}
+.subtabs button.sel .ic,.big.sel .ico .ic{stroke:#fff}
+.sizeinfo{font-size:12.5px;color:var(--muted);margin-top:6px}.sizeinfo b{color:var(--acc)}
 .subtabs{position:sticky;top:calc(env(safe-area-inset-top) + 58px);z-index:4;display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:10px 0 2px;padding:4px;border-radius:14px;background:#0e1530;border:1px solid var(--line)}
 .subtabs button{min-height:42px;border:none!important;background:transparent;font-weight:700;font-size:15px;border-radius:10px!important}
 .subtabs button.sel{background:linear-gradient(135deg,#0e7490,#6d28d9);color:#fff}
@@ -138,6 +144,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px}
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="ig" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#a78bfa"/></linearGradient></defs></svg>
 <div class="wrap">
 <header>
   <img src="icon-192.png" alt="">
@@ -148,17 +155,15 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px}
 
 <nav class="tabs"><button data-view="gen" class="sel">Generator</button><button data-view="chat">Asistent</button><button data-view="guide">Ghid stive</button></nav>
 
-<div class="note"><b>Notă:</b> Proteodyne este un instrument experimental de sunet, inspirat de cercetările lui Joël Sternheimer despre „proteodii”. Ipoteza lui este că o melodie construită din secvența de aminoacizi a unei proteine ar putea stimula, țintit, producerea acelei proteine în organism. Ipoteza nu este dovedită științific: aplicația nu are efect terapeutic demonstrat și nu înlocuiește tratamentul sau sfatul medicului ori al medicului veterinar. Fiecare o folosește pe propria răspundere. Ascultă la volum moderat.</div>
-
 <div id="view-gen">
-<nav class="subtabs"><button data-sub="custom" class="sel">🛠️ Custom</button><button data-sub="pre">✨ Predefinite</button></nav>
+<nav class="subtabs"><button data-sub="custom" class="sel"><span data-ic="custom"></span>Custom</button><button data-sub="pre"><span data-ic="pre"></span>Predefinite</button></nav>
 <section class="card" id="sec-dom">
   <h2>Pentru cine generezi</h2>
   <div class="grid4">
-    <button class="big sel" data-dom="om"><span class="ico">🧍</span>Om</button>
-    <button class="big" data-dom="plante"><span class="ico">🌱</span>Plante</button>
-    <button class="big" data-dom="insecte"><span class="ico">🐝</span>Insecte</button>
-    <button class="big" data-dom="animale"><span class="ico">🐄</span>Animale</button>
+    <button class="big sel" data-dom="om"><span class="ico" data-ic="om"></span>Om</button>
+    <button class="big" data-dom="plante"><span class="ico" data-ic="plante"></span>Plante</button>
+    <button class="big" data-dom="insecte"><span class="ico" data-ic="insecte"></span>Insecte</button>
+    <button class="big" data-dom="animale"><span class="ico" data-ic="animale"></span>Animale</button>
   </div>
   <div class="domnote" id="dom-note"></div>
 </section>
@@ -167,9 +172,9 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px}
 <section class="card" id="sec-sex">
   <h2><span class="step">1</span> Pentru cine este sesiunea</h2>
   <div class="grid3">
-    <button class="big" data-sex="F"><span class="ico">♀</span>Femeie</button>
-    <button class="big" data-sex="M"><span class="ico">♂</span>Bărbat</button>
-    <button class="big" data-sex="U"><span class="ico">⚥</span>Universal</button>
+    <button class="big" data-sex="F"><span class="ico" data-ic="F"></span>Femeie</button>
+    <button class="big" data-sex="M"><span class="ico" data-ic="M"></span>Bărbat</button>
+    <button class="big" data-sex="U"><span class="ico" data-ic="U"></span>Universal</button>
   </div>
   <label class="lbl">Vârstă (ajustează tempo și timbru)</label>
   <div class="grid3" id="age-row">
@@ -185,10 +190,10 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px}
   <input type="search" id="search" placeholder="Caută boală, disfuncție sau problemă (ex. insomnie, artroză, imunitate)" autocomplete="off">
   <div class="res" id="search-res"></div>
   <div class="grid2" style="margin-top:10px" id="cat-row">
-    <button class="big" data-cat="organe"><span class="ico">🫀</span>Organe</button>
-    <button class="big" data-cat="sisteme"><span class="ico">🧠</span>Sisteme</button>
-    <button class="big" data-cat="musculo"><span class="ico">🦴</span>Musculoscheletic</button>
-    <button class="big" data-cat="sange"><span class="ico">🩸</span>Sânge</button>
+    <button class="big" data-cat="organe"><span class="ico" data-ic="heart"></span>Organe</button>
+    <button class="big" data-cat="sisteme"><span class="ico" data-ic="brain"></span>Sisteme</button>
+    <button class="big" data-cat="musculo"><span class="ico" data-ic="bone"></span>Musculoscheletic</button>
+    <button class="big" data-cat="sange"><span class="ico" data-ic="drop"></span>Sânge</button>
   </div>
 </section>
 
@@ -271,6 +276,19 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px}
         <option value="300">5 minute</option>
       </select></div>
   </div>
+  <div class="grid2" style="margin-top:6px">
+    <div><label class="lbl">Acord (ton)</label>
+      <select id="tune">
+        <option value="stern" selected>Sternheimer</option>
+        <option value="penta">Pentatonic calm</option>
+      </select></div>
+    <div><label class="lbl">Calitate sunet</label>
+      <select id="qual">
+        <option value="std" selected>Standard 16-bit</option>
+        <option value="hi">Studio 24-bit</option>
+      </select></div>
+  </div>
+  <div class="sizeinfo" id="size-info"></div>
   <label class="lbl"><input type="checkbox" id="loop"> Repetă continuu</label>
   <label class="lbl"><input type="checkbox" id="drone" checked> Fundal armonic (dronă)</label>
   <div class="grid3" style="margin-top:8px">
@@ -279,8 +297,8 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px}
     <button id="btn-mid" class="small" disabled>Export .mid</button>
   </div>
   <label class="lbl" for="fname" style="margin-top:10px;display:block">Numele fișierului audio</label>
-  <div style="display:flex;gap:8px;margin-top:4px"><input id="fname" type="text" maxlength="60" placeholder="ex. somn-liniștit" style="flex:1;min-width:0"><button id="btn-share" class="small" disabled>📤 Salvează / Trimite</button></div>
-  <div class="hint" id="save-hint" style="font-size:12.5px;color:var(--muted);margin-top:6px">Export .wav pune fișierul în folderul Descărcări (Download) al telefonului: în aplicația Fișiere, deschide Descărcări. Cu 📤 alegi tu unde îl salvezi (Fișiere, Drive, WhatsApp...).</div>
+  <div style="display:flex;gap:8px;margin-top:4px"><input id="fname" type="text" maxlength="60" placeholder="ex. somn-liniștit" style="flex:1;min-width:0"><button id="btn-share" class="small" disabled><span data-ic="share"></span>Salvează / Trimite</button></div>
+  <div class="hint" id="save-hint" style="font-size:12.5px;color:var(--muted);margin-top:6px">Export .wav pune fișierul în folderul Descărcări (Download) al telefonului: în aplicația Fișiere, deschide Descărcări. Cu „Salvează / Trimite” alegi tu unde îl salvezi (Fișiere, Drive, WhatsApp...).</div>
 </section>
 
 <!-- STIVELE MELE -->
@@ -302,7 +320,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px}
 
 <details class="card">
   <summary>Cum funcționează</summary>
-  <p style="font-size:14px;color:var(--muted)">Fiecare aminoacid are o masă moleculară. Aplicația transformă masa într-o frecvență (prin octave, inspirat de ideea „proteodiilor” a lui J. Sternheimer) și o potrivește pe o gamă pentatonică, ca melodia să sune plăcut. O stivă leagă mai multe secvențe una după alta. Sunetul se calculează direct pe telefon ca fișier WAV (44,1 kHz, 16-bit, mono), deci merge și fără internet.</p>
+  <p style="font-size:14px;color:var(--muted)">Fiecare aminoacid are o masă moleculară. Aplicația transformă masa într-o frecvență (prin octave, inspirat de ideea „proteodiilor” a lui J. Sternheimer) și (în modul „Pentatonic calm”) o potrivește pe o gamă pentatonică, ca melodia să sune plăcut. În modul „Sternheimer” folosește tabelul de note din brevetul lui: glicina este La grav, 220 Hz, pe gama cromatică temperată. O stivă leagă mai multe secvențe una după alta. Sunetul se calculează direct pe telefon ca fișier WAV (44,1 kHz, 16-bit, mono), deci merge și fără internet.</p>
   <p style="font-size:14px;color:var(--muted)">Secvențele din aplicație sunt fragmente scurte, ilustrative, asociate cu numele proteinelor. Nu sunt secvențele complete din UniProt. Alegerea zonei și a acțiunii schimbă doar ce melodie se generează.</p>
 </details>
 
@@ -334,6 +352,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px}
   </section>
 </div>
 
+<div class="note" style="margin-top:14px"><b>Notă:</b> Proteodyne este un instrument experimental de sunet, inspirat de cercetările lui Joël Sternheimer despre „proteodii”. Ipoteza lui este că o melodie construită din secvența de aminoacizi a unei proteine ar putea stimula, țintit, producerea acelei proteine în organism. Ipoteza nu este dovedită științific: aplicația nu are efect terapeutic demonstrat și nu înlocuiește tratamentul sau sfatul medicului ori al medicului veterinar. Fiecare o folosește pe propria răspundere. Ascultă la volum moderat.</div>
 <footer>Proteodyne • instrument experimental de sunet și relaxare • nu este un dispozitiv medical</footer>
 </div>
 <div class="toast" id="toast"></div>
