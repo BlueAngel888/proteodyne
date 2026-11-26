@@ -17,7 +17,7 @@ Object.assign(I18N_EN,{"Aplicația folosește secvențele reale, complete, din b
 Object.assign(I18N_EN,{"Cum să asculți": "How to listen", "Câteva sugestii simple, ca să te bucuri cât mai mult de fiecare ascultare.": "A few simple suggestions to get the most out of each listening session.", "Alege o singură temă pe sesiune. O stivă ascultată cu atenție face mai mult decât mai multe ascultate pe fugă.": "Choose one theme per session. One stack listened to with attention does more than several listened to in a hurry.", "Ascultă 5–10 minute, o dată pe zi. Sternheimer lucra cu sesiuni scurte, de câteva minute.": "Listen for 5–10 minutes, once a day. Sternheimer worked with short sessions of a few minutes.", "Stivele lungi sunt împărțite în părți. Ascultă o parte pe sesiune și continuă data viitoare cu „Partea următoare”.": "Long stacks are split into parts. Listen to one part per session and continue next time with “Next part”.", "Mai bine puțin în fiecare zi decât mult dintr-odată. Alege un moment fix, de exemplu dimineața sau seara.": "A little every day is better than a lot at once. Pick a regular moment, for example morning or evening.", "Găsește un loc liniștit, stai comod, închide ochii și respiră lent. Lasă melodia să curgă fără să o analizezi.": "Find a quiet place, sit comfortably, close your eyes and breathe slowly. Let the melody flow without analysing it.", "Folosește căști sau un difuzor bun, la volum mic spre mediu, cât să fie plăcut.": "Use headphones or a good speaker, at low to medium volume, just enough to feel pleasant.", "Ghidează-te după cum te simți. Cât timp melodia îți place, ascult-o. Când simți că e destul, fă o pauză și revino altă dată. Așa recomanda și Sternheimer.": "Let how you feel guide you. As long as you enjoy the melody, keep listening. When it feels like enough, take a break and come back another time. This is what Sternheimer recommended too.", "Pentru sunetul cel mai apropiat de metoda originală, păstrează acordul „Sternheimer” și alege un timbru curat: Sinus, Flaut sau Cald.": "For the sound closest to the original method, keep the “Sternheimer” tuning and choose a clean timbre: Sine, Flute or Warm.", "Pentru plante și animale, pune sunetul la un difuzor, la volum mic, câteva minute pe zi.": "For plants and animals, play the sound through a speaker at low volume, a few minutes a day.", "Poți nota într-un jurnal ce ai ascultat și cum te-ai simțit, ca să vezi ce ți se potrivește.": "You can keep a short journal of what you listened to and how you felt, to see what suits you.", "Folosește aplicația alături de un stil de viață sănătos și de tratamentul recomandat de medic.": "Use the app alongside a healthy lifestyle and the treatment recommended by your doctor."});
 Object.assign(I18N_EN,{"Proteina zilei": "Protein of the day", "Fișa proteinei": "Protein details", "▶ Ascultă": "▶ Listen", "Caută în UniProt": "Search UniProt", "Scrie numele sau codul unei proteine și adaug-o în stiva ta, cu secvența ei reală. Căutarea are nevoie de internet. Ce adaugi rămâne în telefon și merge apoi și fără internet.": "Type the name or code of a protein and add it to your stack with its real sequence. Searching needs internet. What you add stays on your phone and then works offline too.", "Nume sau cod (ex. insulin, collagen, P01308)": "Name or code (e.g. insulin, collagen, P01308)", "Caută": "Search", "Doar proteine verificate": "Reviewed proteins only", "Toate organismele": "All organisms", "Vacă": "Cow", "Porc": "Pig", "Găină": "Chicken", "Câine": "Dog", "Pisică": "Cat", "Albină": "Honey bee", "Roșie": "Tomato", "Cartof": "Potato", "Porumb": "Maize", "Grâu": "Wheat", "Viță-de-vie": "Grapevine", "Secvențe de proteine:": "Protein sequences:", "(licență CC BY 4.0)": "(CC BY 4.0 licence)"});
 Object.assign(I18N_EN,{"Cu internet, poți scrie și „caută insulin” sau „caută sleep”. Asistentul caută în baza de date UniProt și îți formează o stivă din proteinele găsite, cu secvențele lor reale.": "With internet, you can also type “search insulin” or “search sleep”. The assistant searches the UniProt database and builds a stack from the proteins it finds, with their real sequences."});
-Object.assign(I18N_EN,{"Sternheimer original (ton pur)": "Sternheimer original (pure tone)"});
+Object.assign(I18N_EN,{"Original Sternheimer": "Original Sternheimer"});
 function L(r,e){return LANG==='en'?e:r}
 let I18N_RE=null;
 function i18nRe(){
@@ -445,7 +445,7 @@ document.querySelectorAll('[data-age]').forEach(b=>b.onclick=()=>{
 });
 function applyAgeDefaults(){
   const m={copil:[72,'flaut',50],adult:[84,'cald',60],senior:[66,'cald',55]}[S.age];
-  $('bpm').value=m[0]; $('timbre').value=m[1]; $('vol').value=m[2]; syncLabels();
+  $('bpm').value=m[0]; $('vol').value=m[2]; syncLabels();
 }
 document.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{
   S.cat=b.dataset.cat; S.part=null;
@@ -576,7 +576,7 @@ function renderPresets(){
 // „Încarcă + preset potrivit”: tempo mic seara/relaxare, tempo alert la focus/energie. Rămâne control manual.
 function applyMood(m,kid){
   if(!m) return; const k=MOOD[m]; const adj=kid?-6:({copil:-6,adult:0,senior:-8}[S.age]||0);
-  $('bpm').value=k.bpm+adj; $('timbre').value=kid?'flaut':k.timbre; $('drone').checked=k.drone; if(kid||S.age==='copil') $('vol').value=Math.min(+$('vol').value,45); syncLabels();
+  $('bpm').value=k.bpm+adj; $('drone').checked=k.drone; if(kid||S.age==='copil') $('vol').value=Math.min(+$('vol').value,45); syncLabels();
   toast('Preset '+k.n+': '+(k.bpm+adj)+' BPM, timbru '+$('timbre').selectedOptions[0].text+'. Poți schimba manual.');
 }
 function guessMood(genes){
@@ -1536,6 +1536,9 @@ function potdGene(){
     $('potd-body').querySelector('small').appendChild(document.createTextNode(fmt(stackSeconds([g],84))+' min'));
     $('potd-play').onclick=()=>{setStack(soloStack(g,L('Proteina zilei','Protein of the day'))); generate([g]); S.playing=S.stack};
     $('potd-card').onclick=()=>protCard(g) } }
+
+{ const sz=$('size-info'), n=document.createElement('div'); n.id='timbre-note'; n.style.cssText='font-size:13px;color:#67e8f9;margin:6px 0 2px'; if(sz&&sz.parentNode) sz.parentNode.insertBefore(n,sz);
+  const up=()=>{n.textContent=$('timbre').value==='sinus'?L('Timbru Original Sternheimer: ton pur și simplu, cel mai apropiat de sintetizatorul folosit de el.','Original Sternheimer timbre: a pure, simple tone, the closest to the synthesizer he used.'):''}; $('timbre').addEventListener('change',up); up() }
 
 /* ================== START ================== */
 document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>showView(b.dataset.view));
