@@ -1114,8 +1114,31 @@ function fmt(s){s=Math.round(s);return Math.floor(s/60)+':'+String(s%60).padStar
 $('btn-mood').onclick=()=>S.stack&&applyMood(S.stack.mood);
 $('btn-gen').onclick=()=>{ if(!S.stack) return; generate(S.stack.genes); S.playing=S.stack };
 $('btn-test').onclick=()=>{ const d=$('dur').value; $('dur').value='0'; generate(['OXT']); $('dur').value=d };
-$('btn-wav').onclick=()=>download(S.wav,fileBase()+'.wav');
-$('btn-mid').onclick=()=>download(midiBlob(S.notes,S.bpm),fileBase()+'.mid');
+function expParts(g){ const o=opts(); let pos=null,n=0; do{ pos=buildNotes(g,o.bpm,o.dur,pos).next; n++ }while(pos&&n<400); return n }
+function expOne(kind){ $('exp-choice').innerHTML=''; if(kind==='wav') download(S.wav,fileBase()+'.wav'); else download(midiBlob(S.notes,S.bpm),fileBase()+'.mid') }
+function expAsk(kind){
+  const g=curGenes(), el=$('exp-choice'); if(S.exporting) return;
+  const n=g&&g.length?expParts(g):1; if(n<2){expOne(kind);return}
+  el.innerHTML='<div style="margin-bottom:6px;color:var(--muted)">'+L('Ce vrei să exporți ca ','What do you want to export as ')+'.'+kind+'?</div>';
+  const row=document.createElement('div'); row.className='grid2';
+  const a=document.createElement('button'); a.className='small'; a.textContent=L('Doar partea ','Only part ')+Math.min(S.part||1,n)+L(' din ',' of ')+n; a.onclick=()=>expOne(kind);
+  const b=document.createElement('button'); b.className='small primary'; b.textContent=kind==='wav'?L('Toată stiva (','Whole stack (')+n+L(' fișiere)',' files)'):L('Toată stiva (un fișier)','Whole stack (one file)'); b.onclick=()=>expAll(kind,g.slice(),n);
+  row.append(a,b); el.appendChild(row);
+  if(kind==='wav'){ const h=document.createElement('div'); h.style.cssText='margin-top:6px;color:var(--muted);font-size:12.5px'; h.textContent=L('Stiva întreagă se salvează ca fișiere numerotate, câte unul pentru fiecare parte. Dacă telefonul întreabă, permite descărcarea mai multor fișiere.','The whole stack is saved as numbered files, one per part. If your phone asks, allow multiple downloads.'); el.appendChild(h) }
+}
+async function expAll(kind,g,n){
+  const o=opts(), base=fileBase(), el=$('exp-choice'), keep={plan:S.plan,next:S.nextPos};
+  if(kind==='mid'){ let pos=null,off=0,k=0; const all=[]; do{ const bn=buildNotes(g,o.bpm,o.dur,pos); bn.notes.forEach(x=>all.push(Object.assign({},x,{t:x.t+off}))); off+=bn.total; pos=bn.next }while(pos&&++k<400);
+    el.innerHTML=''; download(midiBlob(all,o.bpm),base+L('-toata-stiva','-whole-stack')+'.mid'); return }
+  S.exporting=true; const pad=x=>String(x).padStart(2,'0'); let pos=null, done=0;
+  try{ for(let i=1;i<=n;i++){ el.textContent=L('Pregătesc partea ','Preparing part ')+i+L(' din ',' of ')+n+'…'; await new Promise(r=>setTimeout(r,80));
+      const r=synth(g,o,pos), blob=r.f32?wav24(r.f32):wavBlob(r.pcm); pos=S.nextPos; download(blob,base+'-'+pad(i)+L('-din-','-of-')+pad(n)+'.wav'); done++; if(!pos) break; await new Promise(r=>setTimeout(r,1200)) }
+    el.textContent=L('Gata: am salvat ','Done: saved ')+done+L(' fișiere în Descărcări.',' files to Downloads.') }
+  catch(e){ el.textContent=L('Exportul s-a oprit la partea ','The export stopped at part ')+(done+1)+L('. Încearcă o durată mai mică pe parte sau calitatea Standard.','. Try a shorter part duration or Standard quality.') }
+  S.plan=keep.plan; S.nextPos=keep.next; S.exporting=false;
+}
+$('btn-wav').onclick=()=>expAsk('wav');
+$('btn-mid').onclick=()=>expAsk('mid');
 function autoBase(){return 'proteodyne-'+norm((S.playing==='mix'?'combinatie':(S.stack?S.stack.name:'test'))).replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}
 function fileBase(){const v=($('fname').value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().replace(/[\\/:*?"<>|]+/g,'').replace(/\s+/g,'-').replace(/\.(wav|mid)$/i,''); return v||autoBase()}
 $('fname').oninput=()=>{S.fnTyped=!!$('fname').value.trim()};
