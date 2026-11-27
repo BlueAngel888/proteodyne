@@ -1289,18 +1289,21 @@ const audio=$('audio');
 function opts(){const hi=$('qual').value==='hi'; SR=hi?48000:44100; return {bits:hi?24:16, bpm:+$('bpm').value, vol:+$('vol').value/100, timbre:$('timbre').value, dur:+$('dur').value, drone:$('drone').checked}}
 function syncLabels(){$('bpm-v').textContent=$('bpm').value; $('vol-v').textContent=$('vol').value}
 ['bpm','vol'].forEach(id=>$(id).addEventListener('input',syncLabels));
-$('loop').addEventListener('change',()=>audio.loop=$('loop').checked);
+function loopOne(){return $('loop').checked&&+$('dur').value>0}
+$('loop').addEventListener('change',()=>audio.loop=loopOne());
+$('dur').addEventListener('change',()=>audio.loop=loopOne());
 
 function generate(genes,play=true){
   const key=genes.join(','); if(S.posKey!==key){S.posKey=key; const sv=posLoad(key); S.pos=sv&&sv.g<genes.length?{g:sv.g,a:sv.a}:null; if(S.pos&&play) setTimeout(()=>toast(L('Continui de unde ai rămas: etapa ','Continuing where you left off: part ')+curPart(genes)),2400)}
   posSave(key,S.pos);
   S.lastGenes=genes.slice();
+  if(audio.ended){ try{audio.removeAttribute('src'); audio.load()}catch(e){} if(S.url){URL.revokeObjectURL(S.url); S.url=null} S.wav=null }
   const o=opts(); const t0=performance.now();
   const r=synth(genes,o,S.pos);
   const blob=r.f32?wav24(r.f32):wavBlob(r.pcm);
   if(S.url) URL.revokeObjectURL(S.url);
   S.url=URL.createObjectURL(blob); S.wav=blob; S.notes=r.notes; S.bpm=o.bpm; S.total=r.total;
-  audio.src=S.url; audio.loop=$('loop').checked;
+  audio.src=S.url; audio.loop=loopOne();
   $('btn-wav').disabled=false; $('btn-mid').disabled=false; $('btn-share').disabled=false; if(!S.fnTyped) $('fname').value=autoBase();
   const ms=Math.round(performance.now()-t0);
   toast('Generat: '+fmt(r.total)+' • '+(blob.size/1048576).toFixed(1)+' MB • '+ms+' ms');
@@ -1681,7 +1684,8 @@ function goPart(next){ const g=curGenes(); if(!g) return; const was=!audio.pause
       r.append(a,n); el.appendChild(r) } };
   $('tune').addEventListener('change',()=>updSize());
   audio.addEventListener('ended',()=>{ if(audio.loop) return; const g=curGenes(); if(!g) return;
-    if(S.nextPos&&+$('dur').value<=0){ toast(L('Continuă cu etapa următoare','Continuing with the next part')); goPart('auto'); return }
+    if(S.nextPos&&+$('dur').value<=0){ toast(L('Continuă cu etapa următoare','Continuing with the next part')); try{ goPart('auto') }catch(e){ toast(L('Nu am putut pregăti etapa următoare. Apasă „Etapa următoare” sau alege calitatea Standard.','Could not prepare the next part. Press “Next part” or choose Standard quality.')) } return }
+    if($('loop').checked&&+$('dur').value<=0){ const keep=S.playing; if(S.pos){ S.pos=null; generate(g,true); S.playing=keep } else { try{audio.currentTime=0}catch(e){} const pp=audio.play(); if(pp&&pp.catch) pp.catch(()=>{}) } toast(L('Stiva s-a încheiat și reîncepe de la început','The stack has ended and starts again from the beginning')); return }
     const keep=S.playing;
     if(S.nextPos){ S.pos=S.nextPos; generate(g,false); S.playing=keep; toast(L('Etapa s-a încheiat. Apasă Redă când vrei să continui cu etapa următoare.','This part has ended. Press Play when you want to continue with the next part.')) }
     else if(S.pos){ S.pos=null; generate(g,false); S.playing=keep; toast(L('Ai parcurs toată stiva. Data viitoare începe din nou de la început.','You have gone through the whole stack. Next time it starts again from the beginning.')) } });
