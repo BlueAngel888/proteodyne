@@ -63,7 +63,7 @@ input[type=range]{width:100%;accent-color:var(--acc)}
 .preset small{display:block;color:var(--muted);font-size:12px}
 canvas{width:100%;height:190px;display:block;background:#070b18;border-radius:12px;border:1px solid var(--line)}
 audio{width:100%;margin-top:10px}
-.now{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-top:6px;gap:8px}
+.now{display:grid;grid-template-columns:auto minmax(0,1fr) 74px;align-items:center;font-size:13px;color:var(--muted);margin-top:6px;gap:8px;height:20px;line-height:20px;white-space:nowrap;overflow:hidden}.now span{min-width:0;overflow:hidden;text-overflow:ellipsis}.now span:nth-child(2){text-align:center}.now .lb{font-style:normal}@media(max-width:360px){.now .lb{display:none}}.now span:nth-child(3){text-align:right;font-variant-numeric:tabular-nums}
 .now b{color:var(--text)}
 .res{display:flex;flex-direction:column;gap:6px;margin-top:8px}
 .res button{text-align:left}
@@ -281,7 +281,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:14px}
   <h2>Player</h2>
   <div id="np"><div class="np-top"><span id="np-l">Stiva aleasă</span><span class="chip" id="np-q"></span></div><div id="np-name">Alege o stivă</div></div>
   <canvas id="viz" width="1200" height="340"></canvas>
-  <div class="now"><span>Țintă: <b id="now-target">–</b></span><span>Aminoacid: <b id="now-aa">–</b></span><span><b id="now-hz">–</b></span></div>
+  <div class="now"><span><i class="lb">Țintă: </i><b id="now-target">–</b></span><span><b id="now-aa">–</b></span><span><b id="now-hz">–</b></span></div>
   <button class="primary" id="np-play" style="width:100%;margin-top:8px;font-size:17px;padding:13px">▶ Redă</button>
   <audio id="audio" controls playsinline preload="auto" style="margin-top:8px"></audio>
   <div class="sizeinfo" id="plan-info"></div>
