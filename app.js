@@ -1605,7 +1605,7 @@ document.querySelectorAll('[data-ic]').forEach(e=>{e.innerHTML=ic(e.dataset.ic)}
 function updSize(exact){
   const el=$('size-info'); if(!el) return; const hi=$('qual').value==='hi', sr=hi?48000:44100, by=hi?3:2, dur=+$('dur').value;
   let sec=dur, known=dur>0;
-  if(S.stack&&S.stack.genes&&S.stack.genes.length){ try{sec=buildNotes(S.stack.genes,+$('bpm').value,dur).total; known=true}catch(e){} }
+  { const vg=viewGenes(); if(vg){ try{sec=buildNotes(vg,+$('bpm').value,dur,S.posKey===vg.join(',')?S.pos:null).total; known=true}catch(e){} } }
   const fmtMB=b=>b>=1048576?(b/1048576).toFixed(1).replace('.',LANG==='ro'?',':'.')+' MB':Math.round(b/1024)+' KB';
   el.innerHTML=known? L('Mărime fișier .wav: ','.wav file size: ')+'<b>~'+fmtMB(44+sec*sr*by)+'</b> ('+fmt(sec)+' min, '+(hi?'48 kHz / 24-bit':'44,1 kHz / 16-bit')+')'
     : L('Mărimea fișierului apare după ce alegi o stivă.','The file size appears after you choose a stack.');
@@ -1663,13 +1663,13 @@ function goPart(next){ const g=curGenes(); if(!g) return; const was=!audio.pause
   if(next==='first'){S.pos=null} else { if(!S.nextPos) return; S.pos=S.nextPos }
   const keep=S.playing; generate(g,was); S.playing=keep }
 { const _us=updSize; updSize=function(){ _us.apply(this,arguments); const el=$('plan-info'); if(!el) return;
-    const g=S.stack&&S.stack.genes&&S.stack.genes.length?S.stack.genes:null; if(!g){el.innerHTML='';return}
+    const g=viewGenes(); if(!g){el.innerHTML='';return}
     const same=S.posKey===g.join(','), bpm=+$('bpm').value, dur=+$('dur').value, lim=partLim(dur);
     let b=null; try{b=buildNotes(g,bpm,dur,same?S.pos:null)}catch(e){}
     if(!b){el.innerHTML='';return}
     const pi=partsInfo(g,same?S.pos:null), parts=pi.n, cur=pi.cur;
     let h=planText(b.plan);
-    if(parts>1) h='<b>'+L('Etapa ','Part ')+Math.min(cur,parts)+L(' din ',' of ')+parts+'</b> · '+fmt(b.total)+' min ('+L('stiva completă durează ','the full stack lasts ')+fmt(stackSeconds(g,bpm))+' min)<br>'+h+'<br>'+L('Playerul arată doar etapa curentă. La sfârșitul ei apeși Redă pentru etapa următoare. Pentru toată stiva fără oprire, alege „Stiva completă” la Durată.','The player shows only the current part. When it ends, press Play for the next part. For the whole stack without stopping, choose “Full stack” under Duration.');
+    if(parts>1) h='<b>'+L('Etapa ','Part ')+Math.min(cur,parts)+L(' din ',' of ')+parts+'</b> · '+fmt(b.total)+' min ('+L('stiva completă durează ','the full stack lasts ')+fmt(stackSeconds(g,bpm))+' min)<br>'+h+'<br>'+(dur>0?L('Playerul arată doar etapa curentă. La sfârșitul ei apeși Redă pentru etapa următoare. Pentru toată stiva fără oprire, alege „Stiva completă” la Durată.','The player shows only the current part. When it ends, press Play for the next part. For the whole stack without stopping, choose “Full stack” under Duration.'):L('Stiva completă se redă în părți de cel mult 10 minute, care continuă singure una după alta, fără să apeși nimic. Playerul arată timpul părții curente.','The full stack plays in parts of at most 10 minutes, which continue on their own one after another, without pressing anything. The player shows the time of the current part.'));
     if($('tune').value!=='stern'&&b.plan.some(p=>p.inh)) h+='<br>'+L('Codul de inhibare se aplică doar la acordul Sternheimer.','The inhibition code only applies with the Sternheimer tuning.');
     el.innerHTML=h;
     if(parts>1&&same&&S.wav){ const r=document.createElement('div'); r.style.cssText='display:flex;gap:8px;margin-top:6px';
@@ -1685,6 +1685,7 @@ function goPart(next){ const g=curGenes(); if(!g) return; const was=!audio.pause
   updSize(); }
 
 /* ================== PLAYER SIMPLU: un singur buton Redă ================== */
+function viewGenes(){ const mixOn=S.mix&&S.mix.length, st=S.stack&&S.stack.genes&&S.stack.genes.length?S.stack.genes:null; return (mixOn&&(S.playing==='mix'||!st))?mixGenes():st }
 function genSig(g){return g.join(',')+'|'+JSON.stringify(opts())+'|'+$('tune').value+'|'+g.map(x=>isInhib(x)?1:0).join('')}
 function npUpd(){
   const on=!audio.paused, hi=$('qual').value==='hi', sel=S.stack&&S.stack.genes&&S.stack.genes.length?S.stack:null;
@@ -1711,9 +1712,9 @@ function smartPlay(which){
   if(which==='mix') playMix(); else { generate(g); S.playing=S.stack }
   npUpd();
 }
-{ const _g=generate; generate=function(genes){ const r=_g.apply(this,arguments); S.genSig=genSig(genes); setTimeout(npUpd,0); return r };
+{ const _g=generate; generate=function(genes){ const r=_g.apply(this,arguments); S.genSig=genSig(genes); setTimeout(()=>{npUpd();updSize()},0); return r };
   const _ss=setStack; setStack=function(){ const r=_ss.apply(this,arguments); npUpd(); return r };
-  const _rm=renderMix; renderMix=function(){ const r=_rm.apply(this,arguments); npUpd(); return r };
+  const _rm=renderMix; renderMix=function(){ const r=_rm.apply(this,arguments); npUpd(); updSize(); return r };
   const _t=$('btn-test').onclick; $('btn-test').onclick=()=>{ _t(); S.playing='test'; npUpd() };
   $('btn-gen').onclick=()=>smartPlay('stack');
   $('btn-mix-play').onclick=()=>smartPlay('mix');
